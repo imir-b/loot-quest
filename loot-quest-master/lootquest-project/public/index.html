@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LootQuest - Farm. Gagne. Retire.</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts: Orbitron (Gaming) & Inter (Lisibilité) -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Configuration Tailwind Custom -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        gaming: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'void': '#0B0C15',
+                        'void-light': '#151725',
+                        'neon-purple': '#A855F7',
+                        'neon-blue': '#06B6D4',
+                        'toxic-green': '#10B981',
+                        'alert-red': '#EF4444'
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite', /* Ralenti de 6s à 8s pour plus de fluidité */
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 3s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' }, /* Amplitude réduite pour plus de douceur */
+                        },
+                        glow: {
+                            'from': { boxShadow: '0 0 10px #A855F7, 0 0 20px #A855F7' },
+                            'to': { boxShadow: '0 0 20px #06B6D4, 0 0 30px #06B6D4' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B0C15;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar custom */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0B0C15;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A855F7;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(21, 23, 37, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .text-shadow-neon {
+            text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
+
+        .smooth-transition {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-neon-purple selection:text-white">
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-24 right-4 z-50 flex flex-col gap-3 pointer-events-none">
+        <!-- Les toasts seront injectés ici par JS -->
+    </div>
+
+    <!-- NAVBAR (HUD Style) -->
+    <nav class="fixed w-full z-40 top-0 glass-panel border-b border-white/10 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 smooth-transition">
+                    <i class="fa-solid fa-gamepad text-3xl text-neon-purple animate-pulse-slow"></i>
+                    <span
+                        class="hidden sm:block font-gaming text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-neon-purple to-neon-blue">
+                        LOOTQUEST
+                    </span>
+                </div>
+
+                <!-- User HUD (Simulation) -->
+                <div
+                    class="hidden md:flex items-center gap-6 bg-void-light px-4 py-2 rounded-full border border-white/5 shadow-lg">
+                    <div class="flex items-center gap-2" title="Niveau Joueur">
+                        <span class="text-xs text-gray-400 font-gaming">LVL 1</span>
+                        <div class="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="h-full bg-neon-blue w-[0%] transition-all duration-1000" id="xp-bar"></div>
+                        </div>
+                    </div>
+                    <!-- Monnaie : Pixels -->
+                    <div class="flex items-center gap-2 text-yellow-400 font-bold" title="Solde Pixels">
+                        <i class="fa-solid fa-square text-xs rotate-45"></i> 0 Px
+                    </div>
+                </div>
+
+                <!-- CTA Login -->
+                <button id="nav-login-btn"
+                    class="bg-gradient-to-r from-neon-purple to-indigo-600 hover:from-neon-blue hover:to-indigo-500 text-white font-gaming px-4 py-2 text-sm sm:px-6 sm:text-base rounded-lg transform hover:scale-105 smooth-transition shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+                    <span class="hidden sm:inline" data-i18n="nav.login">CONNEXION</span>
+                    <span class="sm:hidden"><i class="fa-solid fa-right-to-bracket"></i></span>
+                </button>
+
+                <!-- Language Toggle -->
+                <button id="lang-toggle" class="ml-4 text-2xl hover:scale-110 transition-transform"
+                    title="Switch Language">
+                    🇺🇸
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative pt-32 pb-20 overflow-hidden">
+        <!-- Background Elements -->
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-neon-purple/20 blur-[120px] rounded-full -z-10 animate-pulse-slow">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-12">
+
+            <!-- Text Content -->
+            <div class="lg:w-1/2 text-center lg:text-left z-10">
+                <div
+                    class="inline-block px-4 py-1 mb-6 rounded-full bg-neon-blue/10 border border-neon-blue/30 text-neon-blue font-gaming text-sm tracking-widest uppercase">
+                    <i class="fa-solid fa-circle text-[8px] mr-2 animate-pulse"></i> <span
+                        data-i18n="hero.season">Saison 1 Active</span>
+                </div>
+                <h1 class="font-gaming text-5xl lg:text-7xl font-black leading-tight mb-6 text-white text-shadow-neon">
+                    <span data-i18n="hero.title.1">JOUE.</span> <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-blue"
+                        data-i18n="hero.title.2">FARME.</span>
+                    <br> <span data-i18n="hero.title.3">RETIRE.</span>
+                </h1>
+                <p class="text-gray-400 text-lg mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+                    data-i18n="hero.subtitle">
+                    Arrête de jouer gratuitement. Rejoins la guilde, regarde des pubs, invite tes amis et échange tes
+                    <span class="text-neon-purple font-bold">Pixels</span> contre des <span
+                        class="text-white font-bold">V-Bucks & Cartes Cadeaux</span>.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <button id="hero-join-btn"
+                        class="group relative px-8 py-4 bg-white text-black font-gaming font-bold text-lg rounded-xl overflow-hidden smooth-transition hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+                        <span class="relative z-10 flex items-center gap-3">
+                            <span data-i18n="hero.cta.join">COMMENCE À FARMER</span> <i
+                                class="fa-solid fa-play text-xs group-hover:translate-x-1 transition-transform"></i>
+                        </span>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-neon-blue to-neon-purple opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                        </div>
+                    </button>
+
+                    <button
+                        class="px-8 py-4 bg-transparent border border-gray-600 text-white font-gaming font-bold text-lg rounded-xl hover:bg-white/5 hover:border-white smooth-transition"
+                        data-i18n="hero.cta.loot">
+                        VOIR LE BUTIN
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visual Content (Floating 3D effect Mockup) -->
+            <div class="lg:w-1/2 relative mt-10 lg:mt-0 animate-float">
+                <div
+                    class="relative z-10 glass-panel p-2 rounded-2xl transform rotate-[-3deg] hover:rotate-0 transition-transform duration-700 shadow-2xl shadow-neon-purple/20">
+                    <div class="bg-void-light rounded-xl p-6 border border-white/5">
+                        <!-- Mockup Card Header -->
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="font-gaming text-neon-blue" data-i18n="mockup.inventory">INVENTAIRE</span>
+                            <i class="fa-solid fa-wallet text-gray-500"></i>
+                        </div>
+                        <!-- Mockup Cards -->
+                        <div class="space-y-4">
+                            <div
+                                class="flex items-center gap-4 p-3 rounded-lg bg-gradient-to-r from-gray-800 to-transparent border border-white/5 group hover:border-neon-purple/50 transition-colors">
+                                <div
+                                    class="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center text-neon-purple">
+                                    <i class="fa-brands fa-fort-awesome text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">1,000 V-Bucks</h4>
+                                    <p class="text-xs text-toxic-green"><i class="fa-solid fa-check"></i> <span
+                                            data-i18n="mockup.ready">Prêt à retirer</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div
+                                class="flex items-center gap-4 p-3 rounded-lg bg-gradient-to-r from-gray-800 to-transparent border border-white/5 opacity-75">
+                                <div
+                                    class="w-12 h-12 bg-yellow-900/50 rounded-lg flex items-center justify-center text-yellow-500">
+                                    <i class="fa-solid fa-square text-xl rotate-45"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold">5,000 Pixels</h4>
+                                    <div class="w-32 h-1.5 bg-gray-700 rounded-full mt-2">
+                                        <div class="h-full bg-neon-blue w-[85%] relative overflow-hidden">
+                                            <div class="absolute inset-0 bg-white/30 animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Decorative Blobs behind -->
+                <div
+                    class="absolute -bottom-10 -right-10 w-32 h-32 bg-neon-blue rounded-full blur-[60px] -z-10 opacity-60">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS (Objectifs Explicites) -->
+    <section class="py-20 bg-void-light border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="font-gaming text-3xl md:text-4xl font-bold mb-16" data-i18n="how.title">COMMENT <span
+                    class="text-neon-purple">GAGNER
+                    DES PIXELS</span></h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Step 1: Pubs & Apps -->
+                <div
+                    class="group p-8 rounded-2xl bg-void hover:bg-gray-900 border border-white/5 hover:border-neon-purple/50 smooth-transition hover:-translate-y-2">
+                    <div
+                        class="w-16 h-16 mx-auto bg-neon-purple/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 smooth-transition">
+                        <i class="fa-solid fa-play text-2xl text-neon-purple"></i>
+                    </div>
+                    <h3 class="font-gaming text-xl font-bold mb-3" data-i18n="how.step1.title">1. Regarde & Installe
+                    </h3>
+                    <p class="text-gray-400 text-sm leading-relaxed" data-i18n="how.step1.desc">
+                        L'argent magique n'existe pas : ce sont les pubs qui paient. Regarde des vidéos courtes ou
+                        installe des jeux partenaires pour gagner tes premiers <strong>Pixels</strong>.
+                    </p>
+                </div>
+
+                <!-- Step 2: Social & Referral -->
+                <div
+                    class="group p-8 rounded-2xl bg-void hover:bg-gray-900 border border-white/5 hover:border-neon-blue/50 smooth-transition hover:-translate-y-2">
+                    <div
+                        class="w-16 h-16 mx-auto bg-neon-blue/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 smooth-transition">
+                        <i class="fa-solid fa-users text-2xl text-neon-blue"></i>
+                    </div>
+                    <h3 class="font-gaming text-xl font-bold mb-3" data-i18n="how.step2.title">2. Partage à ta Squad
+                    </h3>
+                    <p class="text-gray-400 text-sm leading-relaxed" data-i18n="how.step2.desc">
+                        Poste ton lien unique sur TikTok ou Discord. Tu gagnes des Pixels à <strong>chaque fois</strong>
+                        qu'un pote clique dessus. C'est le moyen le plus rapide de farm.
+                    </p>
+                </div>
+
+                <!-- Step 3: Reward -->
+                <div
+                    class="group p-8 rounded-2xl bg-void hover:bg-gray-900 border border-white/5 hover:border-toxic-green/50 smooth-transition hover:-translate-y-2">
+                    <div
+                        class="w-16 h-16 mx-auto bg-toxic-green/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 smooth-transition">
+                        <i class="fa-solid fa-wallet text-2xl text-toxic-green"></i>
+                    </div>
+                    <h3 class="font-gaming text-xl font-bold mb-3" data-i18n="how.step3.title">3. Encaisse le Loot</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed" data-i18n="how.step3.desc">
+                        Dès que tu as assez de Pixels, échange-les instantanément contre des cartes cadeaux officielles
+                        (Robux, V-Bucks, Paysafecard).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECURITY / VAULT SECTION -->
+    <section class="py-20 relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 border border-neon-blue/20 relative">
+                <!-- Badge de sécurité -->
+                <div
+                    class="absolute -top-6 left-1/2 -translate-x-1/2 bg-void-light border border-neon-blue px-6 py-2 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <i class="fa-solid fa-shield-cat text-neon-blue"></i>
+                    <span class="font-gaming font-bold text-sm tracking-wider" data-i18n="vault.badge">SECURE
+                        VAULT™</span>
+                </div>
+
+                <div class="text-center mt-6">
+                    <h2 class="font-gaming text-2xl md:text-3xl font-bold mb-6" data-i18n="vault.title">Protocole de
+                        Retrait <span class="text-toxic-green">Anti-Bot</span></h2>
+
+                    <div class="grid md:grid-cols-2 gap-8 text-left mt-10">
+                        <!-- Feature 1 -->
+                        <div
+                            class="bg-void/50 p-6 rounded-xl border-l-4 border-yellow-500 hover:bg-void/80 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fa-solid fa-lock text-yellow-500"></i>
+                                <h4 class="font-bold font-gaming text-white" data-i18n="vault.feat1.title">Premier
+                                    Retrait : 7 Jours</h4>
+                            </div>
+                            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="vault.feat1.desc">
+                                Vérification manuelle obligatoire pour le premier paiement. On s'assure juste que tu
+                                n'es pas un script russe.
+                            </p>
+                        </div>
+
+                        <!-- Feature 2 -->
+                        <div
+                            class="bg-void/50 p-6 rounded-xl border-l-4 border-toxic-green hover:bg-void/80 transition-colors">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fa-solid fa-rocket text-toxic-green"></i>
+                                <h4 class="font-bold font-gaming text-white" data-i18n="vault.feat2.title">Ensuite :
+                                    Speed Run</h4>
+                            </div>
+                            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="vault.feat2.desc">
+                                Une fois vérifié "Humain", tous les retraits suivants sont validés en 24h-48h max.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-void-light border-t border-white/5 pt-12 pb-6">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex justify-center items-center gap-2 mb-6">
+                <i class="fa-solid fa-ghost text-neon-purple text-xl"></i>
+                <span class="font-gaming font-bold text-xl">LootQuest</span>
+            </div>
+            <p class="text-gray-500 text-sm mb-8 max-w-md mx-auto" data-i18n="footer.disclaimer">
+                LootQuest n'est pas affilié à Roblox, Epic Games, ou Microsoft. Plateforme de récompenses publicitaires
+                pour gamers.
+            </p>
+            <div class="flex justify-center gap-6 text-sm text-gray-400 font-gaming mb-8">
+                <a href="legal.html?page=cgu" class="hover:text-neon-blue transition-colors"
+                    data-i18n="footer.cgu">CGU</a>
+                <a href="legal.html?page=privacy" class="hover:text-neon-blue transition-colors"
+                    data-i18n="footer.privacy">Confidentialité</a>
+                <a href="legal.html?page=support" class="hover:text-neon-blue transition-colors"
+                    data-i18n="footer.support">Support</a>
+            </div>
+            <p class="text-gray-700 text-xs">© 2024 LootQuest. GG WP.</p>
+        </div>
+    </footer>
+
+    <!-- LOGIN MODAL (Backend Ready Form) -->
+    <div id="login-modal"
+        class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div id="modal-content"
+            class="glass-panel w-full max-w-md p-8 rounded-2xl transform transition-all duration-300 scale-95 border border-neon-purple/30 shadow-[0_0_30px_rgba(168,85,247,0.2)] relative mx-4">
+
+            <!-- Close Button -->
+            <button id="close-modal-btn"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+
+            <div class="text-center mb-8">
+                <h3 class="font-gaming text-2xl font-bold text-white mb-2" data-i18n="login.title">IDENTIFICATION</h3>
+                <p class="text-gray-400 text-sm" data-i18n="login.subtitle">Connecte-toi pour sauvegarder tes Pixels.
+                </p>
+            </div>
+
+            <div class="space-y-3 mb-6">
+                <!-- Discord Button : Animation bounce supprimée -->
+                <button data-provider="discord"
+                    class="w-full py-3 rounded-lg font-bold text-white flex items-center justify-center gap-3 smooth-transition hover:scale-[1.02] hover:shadow-lg"
+                    style="background-color: #5865F2;">
+                    <i class="fa-brands fa-discord text-xl"></i>
+                    <span data-i18n="login.discord">Continuer avec Discord</span>
+                </button>
+
+                <!-- Google Button -->
+                <button data-provider="google"
+                    class="w-full py-3 rounded-lg font-bold text-black bg-white flex items-center justify-center gap-3 smooth-transition hover:scale-[1.02] hover:shadow-lg">
+                    <i class="fa-brands fa-google text-xl text-red-500"></i>
+                    <span data-i18n="login.google">Continuer avec Google</span>
+                </button>
+            </div>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-[#151725] text-gray-400 font-gaming text-xs" data-i18n="login.classic">OU
+                        CLASSIQUE</span>
+                </div>
+            </div>
+
+            <!-- Formulaire Backend Ready -->
+            <form class="space-y-4" action="/api/login" method="POST"
+                onsubmit="event.preventDefault(); alert('Envoi du formulaire vers le backend simulé.');">
+                <div>
+                    <label class="block text-xs font-gaming text-neon-blue mb-1 ml-1"
+                        data-i18n="login.email_label">EMAIL DU JOUEUR</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-4 top-3.5 text-gray-500"></i>
+                        <!-- Ajout de name="email" pour le backend -->
+                        <input type="email" name="email" required placeholder="pseudo@exemple.com"
+                            class="w-full bg-black/50 border border-white/10 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-colors placeholder-gray-600">
+                    </div>
+                </div>
+                <button type="submit"
+                    class="w-full py-3 rounded-lg font-gaming font-bold text-white bg-gradient-to-r from-neon-purple to-neon-blue hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] smooth-transition flex items-center justify-center gap-2">
+                    <span data-i18n="login.submit">LANCER LA SESSION</span> <i class="fa-solid fa-bolt"></i>
+                </button>
+            </form>
+
+            <p class="mt-6 text-center text-[10px] text-gray-500" data-i18n="login.cookie">
+                En te connectant, tu acceptes que nous utilisions des cookies pour tracker tes quêtes.
+            </p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR SOCIAL PROOF & INTERACTIONS -->
+    <!-- JAVASCRIPT FOR SOCIAL PROOF & INTERACTIONS -->
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // --- SIMULATION XP BARRE ---
+        setTimeout(() => {
+            const xpBar = document.getElementById('xp-bar');
+            if (xpBar) xpBar.style.width = '35%';
+        }, 1000);
+
+        // --- CONFIGURATION DES DONNÉES FAKE ---
+        const users = ['DarkSlayer', 'NoobMaster69', 'KikouDu93', 'EzWin_420', 'ProGamerZ', 'LaraCraft', 'SkyWalkerFR', 'Ttv_Ninja'];
+        const actions = [
+            { item: '1000 V-Bucks', icon: 'fa-fort-awesome', color: 'text-purple-400' },
+            { item: 'Carte Roblox 10€', icon: 'fa-cube', color: 'text-red-400' },
+            { item: '250 Pixels', icon: 'fa-square', color: 'text-yellow-400' },
+            { item: 'Skin Mystère', icon: 'fa-mask', color: 'text-neon-blue' }
+        ];
+
+        // --- FONCTION TOAST AVEC ANIMATION PLUS DOUCE ---
+        function createToast() {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const randomUser = users[Math.floor(Math.random() * users.length)];
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+
+            const toast = document.createElement('div');
+            toast.className = 'glass-panel px-4 py-3 rounded-lg border-l-4 border-neon-purple shadow-lg flex items-center gap-3 min-w-[250px] transform transition-all duration-700 translate-x-full opacity-0 pointer-events-auto';
+
+            toast.innerHTML = `
+                <div class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
+                    <i class="fa-solid ${randomAction.icon} ${randomAction.color} text-sm ${randomAction.icon === 'fa-square' ? 'rotate-45' : ''}"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 font-gaming" data-i18n="toast.won">Vient de gagner</p>
+                    <p class="text-sm font-bold text-white">${randomAction.item} <span class="text-gray-500 text-[10px]">- ${randomUser}</span></p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 700);
+            }, 5000);
+        }
+
+        setTimeout(createToast, 2000);
+        setInterval(() => {
+            createToast();
+        }, Math.floor(Math.random() * 4000) + 6000); // Intervalle légèrement plus lent
+    </script>
+</body>
+
+</html>
