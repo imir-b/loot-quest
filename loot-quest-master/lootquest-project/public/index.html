@@ -397,19 +397,19 @@
 
             <div class="space-y-3 mb-6">
                 <!-- Discord Button : Animation bounce supprimée -->
-                <button data-provider="discord"
+                <a href="/auth/discord" data-provider="discord"
                     class="w-full py-3 rounded-lg font-bold text-white flex items-center justify-center gap-3 smooth-transition hover:scale-[1.02] hover:shadow-lg"
                     style="background-color: #5865F2;">
                     <i class="fa-brands fa-discord text-xl"></i>
                     <span data-i18n="login.discord">Continuer avec Discord</span>
-                </button>
+                </a>
 
                 <!-- Google Button -->
-                <button data-provider="google"
+                <a href="/auth/google" data-provider="google"
                     class="w-full py-3 rounded-lg font-bold text-black bg-white flex items-center justify-center gap-3 smooth-transition hover:scale-[1.02] hover:shadow-lg">
                     <i class="fa-brands fa-google text-xl text-red-500"></i>
                     <span data-i18n="login.google">Continuer avec Google</span>
-                </button>
+                </a>
             </div>
 
             <div class="relative my-6">
@@ -505,6 +505,26 @@
         }
 
         setTimeout(createToast, 2000);
+        // --- AUTH CHECK ---
+        fetch('/api/user')
+            .then(response => response.json())
+            .then(data => {
+                if (data.authenticated) {
+                    const loginBtn = document.getElementById('nav-login-btn');
+                    if (loginBtn) {
+                        loginBtn.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <img src="${data.user.avatar || 'https://ui-avatars.com/api/?name=' + data.user.name}" class="w-6 h-6 rounded-full border border-white/20">
+                                <span class="hidden sm:inline">${data.user.name}</span>
+                            </div>
+                        `;
+                        loginBtn.onclick = () => window.location.href = '/auth/logout';
+                        loginBtn.title = "Déconnexion";
+                    }
+                }
+            })
+            .catch(err => console.log('Auth check failed:', err));
+
         setInterval(() => {
             createToast();
         }, Math.floor(Math.random() * 4000) + 6000); // Intervalle légèrement plus lent
