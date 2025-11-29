@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LootQuest - Informations Légales</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!DOCTYPE html>
+    <html lang="fr">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LootQuest - Informations Légales</title>
+
+        <!-- Tailwind CSS -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <!-- FontAwesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Google Fonts -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700;900&display=swap"
+            rel="stylesheet">
+
+        <!-- Configuration Tailwind Custom (Same as index.html) -->
+        <script src="js/i18n.js"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
+                            gaming: ['Orbitron', 'sans-serif'],
+                        },
+                        colors: {
+                            'void': '#0B0C15',
+                            'void-light': '#151725',
+                            'neon-purple': '#A855F7',
+                            'neon-blue': '#06B6D4',
+                            'toxic-green': '#10B981',
+                            'alert-red': '#EF4444'
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <style>
+            body {
+                background-color: #0B0C15;
+                color: white;
+                overflow-x: hidden;
+            }
+
+            .glass-panel {
+                background: rgba(21, 23, 37, 0.7);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        </style>
+    </head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- NAVBAR -->
+    <nav class="fixed w-full z-40 top-0 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                    <i class="fa-solid fa-gamepad text-3xl text-neon-purple"></i>
+                    <span
+                        class="hidden sm:block font-gaming text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-neon-purple to-neon-blue">
+                        LOOTQUEST
+                    </span>
+                </a>
+                <a href="index.html" class="text-gray-400 hover:text-white transition-colors font-gaming text-sm">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> <span data-i18n="nav.back">RETOUR</span>
+                </a>
+
+                <!-- Language Toggle -->
+                <button id="lang-toggle" class="ml-4 text-xl hover:scale-110 transition-transform"
+                    title="Switch Language">
+                    🇺🇸
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT SECTION -->
+    <section class="pt-32 pb-20 flex-grow">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 border border-white/5">
+                <h1 id="page-title" class="font-gaming text-3xl md:text-4xl font-bold mb-8 text-neon-blue">
+                    CHARGEMENT...
+                </h1>
+                <div id="page-content" class="text-gray-300 leading-relaxed space-y-6">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-void-light border-t border-white/5 py-8 text-center">
+        <p class="text-gray-700 text-xs">© 2024 LootQuest. GG WP.</p>
+    </footer>
+
+    <script>
+        // Content Database
+        const contentDB = {
+            fr: {
+                'cgu': {
+                    title: 'Conditions Générales d\'Utilisation',
+                    body: `
+                        <h3 class="text-xl font-bold text-white mb-2">1. Acceptation des conditions</h3>
+                        <p>En accédant à LootQuest, vous acceptez d'être lié par ces conditions d'utilisation, toutes les lois et réglementations applicables, et acceptez que vous êtes responsable du respect de toutes les lois locales applicables.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">2. Licence d'utilisation</h3>
+                        <p>Il est permis de télécharger temporairement une copie du matériel (information ou logiciel) sur le site web de LootQuest pour une visualisation transitoire personnelle et non commerciale uniquement.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">3. Monnaie virtuelle (Pixels)</h3>
+                        <p>Les "Pixels" sont une monnaie virtuelle sans valeur monétaire réelle. Ils ne peuvent être échangés que contre les récompenses proposées sur la plateforme et ne sont pas transférables entre comptes.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">4. Anti-Triche</h3>
+                        <p>L'utilisation de bots, scripts, ou tout autre moyen automatisé pour gagner des Pixels est strictement interdite et entraînera un bannissement immédiat et définitif.</p>
+                    `
+                },
+                'privacy': {
+                    title: 'Politique de Confidentialité',
+                    body: `
+                        <h3 class="text-xl font-bold text-white mb-2">1. Collecte des données</h3>
+                        <p>Nous collectons uniquement les informations nécessaires au fonctionnement du service : adresse email, pseudo, et historique des transactions de Pixels.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">2. Utilisation des données</h3>
+                        <p>Vos données sont utilisées pour gérer votre compte, traiter vos demandes de retrait, et améliorer l'expérience utilisateur. Nous ne vendons pas vos données personnelles à des tiers.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">3. Cookies</h3>
+                        <p>Nous utilisons des cookies pour maintenir votre session active et suivre vos progrès dans les quêtes partenaires.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">4. Sécurité</h3>
+                        <p>Nous mettons en œuvre des mesures de sécurité pour protéger vos informations personnelles contre l'accès non autorisé, la modification, la divulgation ou la destruction.</p>
+                    `
+                },
+                'support': {
+                    title: 'Support & Aide',
+                    body: `
+                        <p class="mb-6">Besoin d'aide ? Notre équipe est là pour vous assister.</p>
+                        
+                        <div class="bg-void-light p-6 rounded-xl border border-white/10 mb-6">
+                            <h3 class="text-xl font-bold text-white mb-4"><i class="fa-brands fa-discord text-indigo-500 mr-2"></i> Discord Communautaire</h3>
+                            <p class="mb-4">Le moyen le plus rapide d'obtenir de l'aide est de rejoindre notre serveur Discord. Ouvrez un ticket dans le salon #support.</p>
+                            <a href="#" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Rejoindre le Discord</a>
+                        </div>
+
+                        <div class="bg-void-light p-6 rounded-xl border border-white/10">
+                            <h3 class="text-xl font-bold text-white mb-4"><i class="fa-solid fa-envelope text-neon-purple mr-2"></i> Email</h3>
+                            <p>Pour les demandes professionnelles ou les problèmes de compte graves :</p>
+                            <a href="mailto:support@lootquest.gg" class="text-neon-blue hover:underline">support@lootquest.gg</a>
+                        </div>
+                    `
+                }
+            },
+            en: {
+                'cgu': {
+                    title: 'Terms of Service',
+                    body: `
+                        <h3 class="text-xl font-bold text-white mb-2">1. Acceptance of Terms</h3>
+                        <p>By accessing LootQuest, you agree to be bound by these terms of service, all applicable laws and regulations, and agree that you are responsible for compliance with any applicable local laws.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">2. Use License</h3>
+                        <p>Permission is granted to temporarily download one copy of the materials (information or software) on LootQuest's website for personal, non-commercial transitory viewing only.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">3. Virtual Currency (Pixels)</h3>
+                        <p>"Pixels" are a virtual currency with no real monetary value. They can only be exchanged for rewards offered on the platform and are not transferable between accounts.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">4. Anti-Cheat</h3>
+                        <p>The use of bots, scripts, or any other automated means to earn Pixels is strictly prohibited and will result in an immediate and permanent ban.</p>
+                    `
+                },
+                'privacy': {
+                    title: 'Privacy Policy',
+                    body: `
+                        <h3 class="text-xl font-bold text-white mb-2">1. Data Collection</h3>
+                        <p>We only collect information necessary for the operation of the service: email address, username, and Pixel transaction history.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">2. Data Usage</h3>
+                        <p>Your data is used to manage your account, process your withdrawal requests, and improve user experience. We do not sell your personal data to third parties.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">3. Cookies</h3>
+                        <p>We use cookies to keep your session active and track your progress in partner quests.</p>
+                        
+                        <h3 class="text-xl font-bold text-white mb-2">4. Security</h3>
+                        <p>We implement security measures to protect your personal information against unauthorized access, modification, disclosure, or destruction.</p>
+                    `
+                },
+                'support': {
+                    title: 'Support & Help',
+                    body: `
+                        <p class="mb-6">Need help? Our team is here to assist you.</p>
+                        
+                        <div class="bg-void-light p-6 rounded-xl border border-white/10 mb-6">
+                            <h3 class="text-xl font-bold text-white mb-4"><i class="fa-brands fa-discord text-indigo-500 mr-2"></i> Community Discord</h3>
+                            <p class="mb-4">The fastest way to get help is to join our Discord server. Open a ticket in the #support channel.</p>
+                            <a href="#" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Join Discord</a>
+                        </div>
+
+                        <div class="bg-void-light p-6 rounded-xl border border-white/10">
+                            <h3 class="text-xl font-bold text-white mb-4"><i class="fa-solid fa-envelope text-neon-purple mr-2"></i> Email</h3>
+                            <p>For professional inquiries or serious account issues:</p>
+                            <a href="mailto:support@lootquest.gg" class="text-neon-blue hover:underline">support@lootquest.gg</a>
+                        </div>
+                    `
+                }
+            }
+        };
+
+        // Router Logic
+        function loadContent() {
+            const params = new URLSearchParams(window.location.search);
+            const page = params.get('page');
+            const containerTitle = document.getElementById('page-title');
+            const containerBody = document.getElementById('page-content');
+
+            // Get current language from I18n if available, else default to 'fr'
+            const lang = (typeof I18n !== 'undefined' && I18n.currentLang) ? I18n.currentLang : 'fr';
+            const db = contentDB[lang] || contentDB['fr'];
+
+            if (page && db[page]) {
+                containerTitle.textContent = db[page].title;
+                containerBody.innerHTML = db[page].body;
+                document.title = `LootQuest - ${db[page].title}`;
+            } else {
+                // 404 Fallback
+                containerTitle.textContent = lang === 'fr' ? "Page non trouvée" : "Page Not Found";
+                containerBody.innerHTML = lang === 'fr' ? `
+                    <p>Désolé, la page que vous cherchez n'existe pas ou a été déplacée.</p>
+                    <a href="index.html" class="text-neon-blue hover:underline mt-4 inline-block">Retour à l'accueil</a>
+                ` : `
+                    <p>Sorry, the page you are looking for does not exist or has been moved.</p>
+                    <a href="index.html" class="text-neon-blue hover:underline mt-4 inline-block">Back to Home</a>
+                `;
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadContent();
+
+            // Listen for language changes
+            window.addEventListener('i18n:languageChanged', () => {
+                loadContent();
+            });
+        });
+    </script>
+</body>
+
+</html>

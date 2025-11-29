@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LootQuest - App</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700;900&display=swap"
+        rel="stylesheet">
+
+    <!-- Markdown Parser for AI Responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        gaming: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'void': '#0B0C15',
+                        'void-light': '#151725',
+                        'panel': '#1E2030',
+                        'neon-purple': '#A855F7',
+                        'neon-blue': '#06B6D4',
+                        'toxic-green': '#10B981',
+                        'alert-red': '#EF4444',
+                        'gold': '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base & Reset */
+        body {
+            background-color: #0B0C15;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Scrollbar Styling */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0B0C15;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #A855F7;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(30, 32, 48, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* AI Chat Styles (Trust Version) */
+        .chat-trust-user {
+            background: #374151;
+            color: white;
+            border-radius: 12px 12px 0 12px;
+        }
+
+        .chat-trust-bot {
+            background: #1E2030;
+            border: 1px solid #4B5563;
+            color: #E5E7EB;
+            border-radius: 12px 12px 12px 0;
+        }
+
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Utility Classes for States */
+        .active-nav {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #A855F7;
+            color: white;
+        }
+
+        .active-nav-trust {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            border-left: 4px solid white;
+            color: white;
+        }
+
+        .active-nav-admin {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #EF4444;
+            color: #EF4444;
+        }
+
+        .inactive-nav {
+            border-left: 4px solid transparent;
+            color: #9CA3AF;
+        }
+
+        .inactive-nav:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Locked Item Effect */
+        .locked-item {
+            filter: grayscale(100%);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased flex h-screen">
+
+    <!-- ==================== SIDEBAR (NAVIGATION) ==================== -->
+    <aside
+        class="w-20 lg:w-64 bg-void-light border-r border-white/5 flex flex-col justify-between z-20 transition-all duration-300">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
+            <i class="fa-solid fa-gamepad text-3xl text-neon-purple animate-pulse"></i>
+            <span class="hidden lg:block ml-3 font-gaming font-bold text-xl tracking-wider">LOOTQUEST</span>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-1 py-6 space-y-2 overflow-y-auto custom-scroll">
+            <!-- Section GAMING -->
+            <div class="px-4 mb-2 hidden lg:block text-xs font-bold text-gray-600 uppercase tracking-wider">Zone Joueur
+            </div>
+
+            <button onclick="router('dashboard')" id="nav-dashboard"
+                class="w-full flex items-center px-6 py-4 active-nav transition-all group">
+                <i class="fa-solid fa-house text-lg w-6 text-center group-hover:text-neon-purple"></i>
+                <span class="hidden lg:block ml-3 font-gaming text-sm" data-i18n="nav.dashboard">Base Principale</span>
+            </button>
+
+            <button onclick="router('earn')" id="nav-earn"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-play text-lg w-6 text-center group-hover:text-neon-blue"></i>
+                <span class="hidden lg:block ml-3 font-gaming text-sm" data-i18n="nav.earn">Quêtes & Pubs</span>
+            </button>
+
+            <button onclick="router('loot')" id="nav-loot"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-sack-dollar text-lg w-6 text-center group-hover:text-gold"></i>
+                <span class="hidden lg:block ml-3 font-gaming text-sm" data-i18n="nav.loot">Loot Shop</span>
+            </button>
+
+            <button onclick="router('leaderboard')" id="nav-leaderboard"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-trophy text-lg w-6 text-center group-hover:text-yellow-400"></i>
+                <span class="hidden lg:block ml-3 font-gaming text-sm" data-i18n="nav.leaderboard">Hall of Fame</span>
+            </button>
+
+            <button onclick="router('inventory')" id="nav-inventory"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-box-open text-lg w-6 text-center group-hover:text-toxic-green"></i>
+                <span class="hidden lg:block ml-3 font-gaming text-sm" data-i18n="nav.inventory">Coffre /
+                    Historique</span>
+            </button>
+
+            <!-- Section CONFIANCE -->
+            <div class="mt-8 px-4 mb-2 hidden lg:block text-xs font-bold text-gray-600 uppercase tracking-wider">Zone
+                Trust</div>
+
+            <!-- NEW AI CHATBOT LINK -->
+            <button onclick="router('aiSupport')" id="nav-aiSupport"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-robot text-lg w-6 text-center group-hover:text-white"></i>
+                <span class="hidden lg:block ml-3 font-sans font-bold text-sm"><span data-i18n="nav.aiSupport">Assistant
+                        IA</span> <span
+                        class="text-[10px] bg-neon-blue/20 text-neon-blue px-1.5 py-0.5 rounded ml-2">BETA</span></span>
+            </button>
+
+            <button onclick="router('support')" id="nav-support"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-headset text-lg w-6 text-center group-hover:text-white"></i>
+                <span class="hidden lg:block ml-3 font-sans font-bold text-sm" data-i18n="nav.support">Aide &
+                    Support</span>
+            </button>
+
+            <button onclick="router('legal')" id="nav-legal"
+                class="w-full flex items-center px-6 py-4 inactive-nav transition-all group">
+                <i class="fa-solid fa-scale-balanced text-lg w-6 text-center group-hover:text-white"></i>
+                <span class="hidden lg:block ml-3 font-sans font-bold text-sm" data-i18n="nav.legal">Légal</span>
+            </button>
+
+            <!-- ADMIN LINK (Hidden-ish) -->
+            <div class="mt-8 border-t border-white/5 pt-2">
+                <button onclick="router('admin')" id="nav-admin"
+                    class="w-full flex items-center px-6 py-4 inactive-nav hover:text-red-500 transition-all group">
+                    <i class="fa-solid fa-lock text-lg w-6 text-center group-hover:text-red-500"></i>
+                    <span class="hidden lg:block ml-3 font-gaming text-xs text-gray-600 group-hover:text-red-500"
+                        data-i18n="nav.admin">Admin
+                        Panel</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- User Footer / Logout -->
+        <div class="p-4 border-t border-white/5 bg-void-light">
+            <button onclick="logout()"
+                class="w-full bg-white/5 hover:bg-red-500/20 hover:text-red-400 text-gray-400 p-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-300">
+                <i class="fa-solid fa-power-off"></i>
+                <span class="hidden lg:block font-gaming text-xs font-bold" data-i18n="nav.logout">DÉCONNEXION</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA (SPA) ==================== -->
+    <main id="main-content" class="flex-1 h-screen overflow-y-auto custom-scroll relative bg-void">
+
+        <!-- TOP BAR (Mobile & User Info) -->
+        <!-- TOP BAR (Mobile & User Info) -->
+        <header
+            class="sticky top-0 z-30 glass border-b border-white/5 px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
+            <h2 id="page-title" class="hidden md:block font-gaming text-xl text-white font-bold tracking-wide truncate">
+                BASE PRINCIPALE</h2>
+
+            <!-- Mobile Logo (Visible only when title is hidden) -->
+            <div class="md:hidden text-neon-purple text-2xl animate-pulse">
+                <i class="fa-solid fa-gamepad"></i>
+            </div>
+
+            <!-- User Status -->
+            <div class="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+                <div class="text-right hidden lg:block">
+                    <p class="text-xs text-gray-400 font-gaming" id="user-rank" data-i18n="app.rank">RANG: NOVICE</p>
+                    <div class="w-32 h-1.5 bg-gray-700 rounded-full mt-1">
+                        <div id="header-xp-bar"
+                            class="h-full bg-neon-blue w-[45%] rounded-full shadow-[0_0_10px_#06B6D4]"></div>
+                    </div>
+                </div>
+                <div
+                    class="flex items-center gap-2 sm:gap-3 bg-void-light px-2 sm:px-3 py-1.5 rounded-full border border-neon-purple/30 max-w-[150px] sm:max-w-none">
+                    <div
+                        class="w-6 h-6 sm:w-8 sm:h-8 bg-neon-purple/20 rounded-full flex items-center justify-center text-neon-purple text-xs sm:text-sm">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <span class="font-gaming font-bold text-xs sm:text-sm truncate" id="user-name">PlayerOne</span>
+                </div>
+                <div
+                    class="flex items-center gap-2 text-yellow-400 font-bold bg-yellow-400/10 px-2 sm:px-3 py-1.5 rounded-full border border-yellow-400/20 whitespace-nowrap">
+                    <i class="fa-solid fa-square rotate-45 text-[10px] sm:text-xs"></i> <span id="user-balance"
+                        class="text-xs sm:text-base">0</span> <span class="text-xs sm:text-base">Px</span>
+                </div>
+
+                <!-- Language Toggle -->
+                <button id="lang-toggle" class="ml-2 text-xl hover:scale-110 transition-transform"
+                    title="Switch Language">
+                    🇺🇸
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC VIEWS CONTAINER -->
+        <div id="app-views" class="p-4 lg:p-8 pb-24">
+            <!-- Views will be injected here by JS -->
+        </div>
+
+    </main>
+
+    <!-- ==================== JAVASCRIPT (LOGIC & MOCK DATA & GEMINI) ==================== -->
+    <script src="js/config.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>
