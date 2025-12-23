@@ -1472,6 +1472,13 @@
 
         async function loginWithGoogle() {
             try {
+                // Check if Firebase is initialized
+                if (typeof firebase === 'undefined' || !firebase.auth) {
+                    showAuthError('Firebase is still loading. Please wait a moment and try again.');
+                    console.error('Firebase not loaded yet');
+                    return;
+                }
+
                 const provider = new firebase.auth.GoogleAuthProvider();
                 const result = await auth.signInWithPopup(provider);
 
@@ -1499,7 +1506,13 @@
                 }
             } catch (error) {
                 console.error("Google login failed", error);
-                showAuthError('Google login failed. Try Discord instead.');
+                if (error.code === 'auth/popup-blocked') {
+                    showAuthError('Popup blocked. Please allow popups for this site.');
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    showAuthError('Login cancelled.');
+                } else {
+                    showAuthError('Google login failed. Try Discord instead.');
+                }
             }
         }
 
