@@ -2,7 +2,7 @@
  * Authentication Module - Session Management & Middleware
  * 
  * Provides:
- * - Redis-backed session store (connect-redis)
+ * - Redis-backed session store (connect-redis v9)
  * - Firebase token verification
  * - Session-based authentication middleware
  * - User sync with SQLite database
@@ -11,12 +11,10 @@
  */
 
 const session = require('express-session');
-const connectRedis = require('connect-redis');
 const { getClient } = require('./redis');
 
-// connect-redis v7+ export structure
-const RedisStore = connectRedis.default || connectRedis(session);
-
+// connect-redis v7+ / v9 exports a default constructor
+const RedisStore = require('connect-redis').default;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
@@ -32,16 +30,24 @@ const SESSION_NAME = 'lq_session';
 
 /**
  * Create Redis session store
+ * For connect-redis v9, pass the ioredis client directly
  * @returns {RedisStore} Redis session store instance
  */
 function createSessionStore() {
-    const redisClient = getClient();
+    try {
+        const redisClient = getClient();
 
-    return new RedisStore({
-        client: redisClient,
-        prefix: 'lq:session:',
-        ttl: SESSION_MAX_AGE / 1000, // TTL in seconds
-    });
+        // connect-redis v9 expects the client in the constructor options
+        return new RedisStore({
+            client: redisClient,
+            prefix: 'lq:session:',
+            ttl: Math.floor(SESSION_MAX_AGE / 1000) // TTL in seconds
+        });
+    } catch (err) {
+        console.error('Failed to create Redis session store:', err.message);
+        // Fallback: return null and use MemoryStore
+        return null;
+    }
 }
 
 /**
@@ -52,8 +58,7 @@ function createSessionStore() {
 function createSessionMiddleware(isProduction = false) {
     const store = createSessionStore();
 
-    return session({
-        store,
+    const sessionConfig = {
         name: SESSION_NAME,
         secret: SESSION_SECRET,
         resave: false,
@@ -65,7 +70,17 @@ function createSessionMiddleware(isProduction = false) {
             maxAge: SESSION_MAX_AGE,
             sameSite: 'lax',      // CSRF protection
         }
-    });
+    };
+
+    // Only use Redis store if available
+    if (store) {
+        sessionConfig.store = store;
+        console.log('✅ Redis session store configured');
+    } else {
+        console.warn('⚠️ Using in-memory session store (Redis unavailable)');
+    }
+
+    return session(sessionConfig);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
