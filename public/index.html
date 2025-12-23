@@ -1470,61 +1470,86 @@
         let firebaseInitialized = false;
 
         function initFirebase() {
-            if (firebaseInitialized) return true;
+            console.log("🔵 [DEBUG] initFirebase() called, initialized:", firebaseInitialized);
+
+            if (firebaseInitialized) {
+                console.log("✅ [DEBUG] Firebase already initialized");
+                return true;
+            }
 
             if (typeof firebase === 'undefined') {
-                console.error('Firebase SDK not loaded');
+                console.error('❌ [ERROR] Firebase SDK not loaded');
                 return false;
             }
 
             try {
+                console.log("🔵 [DEBUG] Calling firebase.initializeApp() with config:", {
+                    authDomain: firebaseConfig.authDomain,
+                    projectId: firebaseConfig.projectId
+                });
                 firebase.initializeApp(firebaseConfig);
                 firebaseInitialized = true;
-                console.log('✅ Firebase initialized');
+                console.log('✅ [SUCCESS] Firebase initialized successfully!');
+                console.log('🔥 Firebase app name:', firebase.app().name);
                 return true;
             } catch (e) {
                 // Already initialized
                 if (e.code === 'app/duplicate-app') {
                     firebaseInitialized = true;
+                    console.log('⚠️ [WARN] Firebase already initialized (duplicate app)');
                     return true;
                 }
-                console.error('Firebase init error:', e);
+                console.error('❌ [ERROR] Firebase init error:', e);
+                console.error('📋 Error details:', {
+                    code: e.code,
+                    message: e.message
+                });
                 return false;
             }
         }
 
         async function loginWithGoogle() {
-            console.log('🔵 loginWithGoogle called');
+            console.log('🎯 [BUTTON CLICKED!] loginWithGoogle() called');
+            console.log('📍 Function scope: window.loginWithGoogle exists?', typeof window.loginWithGoogle !== 'undefined');
 
             try {
                 // Check if Firebase is available
                 if (typeof firebase === 'undefined') {
+                    console.error('❌ [ERROR] Firebase SDK not available');
                     alert('Firebase not loaded. Check browser console (F12).');
-                    console.error('Firebase SDK not available');
                     showAuthError('Firebase not loaded. Please refresh the page.');
                     return;
                 }
+                console.log('✅ [DEBUG] Firebase SDK is available');
 
                 // Initialize Firebase if needed
+                console.log('🔵 [DEBUG] Attempting Firebase initialization...');
                 if (!initFirebase()) {
+                    console.error('❌ [ERROR] Failed to initialize Firebase');
                     showAuthError('Failed to initialize Firebase');
                     return;
                 }
+                console.log('✅ [SUCCESS] Firebase initialized successfully');
 
-                console.log('🔵 Creating Google provider...');
+                console.log('🔵 [DEBUG] Creating GoogleAuthProvider...');
                 const provider = new firebase.auth.GoogleAuthProvider();
+                console.log('✅ Provider created:', provider);
 
-                console.log('🔵 Opening popup...');
+                console.log('🚀 [DEBUG] Opening Google Auth popup...');
                 const auth = firebase.auth();
                 const result = await auth.signInWithPopup(provider);
 
-                console.log('🔵 Got result:', result.user.email);
+                console.log('✅ [SUCCESS] Got authentication result!');
+                console.log('👤 User email:', result.user.email);
+                console.log('👤 User displayName:', result.user.displayName);
 
                 // Get Firebase ID token
+                console.log('🔵 [DEBUG] Getting Firebase ID token...');
                 const idToken = await result.user.getIdToken();
-                console.log('🔵 Got idToken');
+                console.log('✅ Got idToken (length:', idToken.length, ')');
 
                 // Create session via backend
+                console.log('🔵 [DEBUG] Sending idToken to backend /api/auth/login...');
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
@@ -1535,22 +1560,34 @@
                 });
 
                 const data = await res.json();
-                console.log('🔵 Backend response:', data);
+                console.log('✅ Backend response received:', data);
 
                 if (data.success) {
+                    console.log('✅ [SUCCESS] Login successful! Redirecting to:', data.redirectUrl || '/dashboard.html');
                     window.location.href = data.redirectUrl || '/dashboard.html';
                 } else {
+                    console.error('❌ [ERROR] Backend rejected login:', data.error);
                     showAuthError(data.error || 'Google login failed');
                 }
             } catch (error) {
-                console.error("🔴 Google login failed:", error);
+                console.error("❌ [EXCEPTION] Google login failed:", error);
+                console.error("📋 Error details:", {
+                    code: error.code,
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack
+                });
+
                 alert('Error: ' + error.message);
 
                 if (error.code === 'auth/popup-blocked') {
+                    console.error('🚫 Popup was blocked by browser');
                     showAuthError('Popup blocked. Allow popups for this site.');
                 } else if (error.code === 'auth/popup-closed-by-user') {
+                    console.warn('⚠️ User closed the popup');
                     showAuthError('Login cancelled.');
                 } else if (error.code === 'auth/unauthorized-domain') {
+                    console.error('🚫 Domain not authorized in Firebase Console');
                     showAuthError('Domain not authorized in Firebase. Add loot-quest.fr to Firebase Console.');
                 } else {
                     showAuthError(error.message || 'Google login failed');
