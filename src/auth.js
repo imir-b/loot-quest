@@ -11,8 +11,12 @@
  */
 
 const session = require('express-session');
-const RedisStore = require('connect-redis').default;
+const connectRedis = require('connect-redis');
 const { getClient } = require('./redis');
+
+// connect-redis v7+ export structure
+const RedisStore = connectRedis.default || connectRedis(session);
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONFIGURATION
