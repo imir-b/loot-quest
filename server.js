@@ -2085,6 +2085,12 @@ async function startServer() {
         console.log('   Postback URL for Lootably:');
         console.log(`   https://yourdomain.com/api/postback/lootably?user_id={user_id}&payout={payout}&transaction_id={transaction_id}&secret=${LOOTABLY_SECRET}`);
         console.log('');
+
+        // Signal PM2 that the application is ready
+        if (process.send) {
+            process.send('ready');
+            console.log('   ✅ Sent ready signal to PM2');
+        }
     });
 }
 
