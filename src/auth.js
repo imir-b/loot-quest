@@ -65,10 +65,10 @@ function createSessionMiddleware(isProduction = false) {
         saveUninitialized: false,
         rolling: true, // Reset maxAge on every request
         cookie: {
-            secure: isProduction, // HTTPS only in production
-            httpOnly: true,       // Prevent XSS access
+            secure: true,             // Always HTTPS (required for SameSite=None)
+            httpOnly: true,           // Prevent XSS access
             maxAge: SESSION_MAX_AGE,
-            sameSite: 'lax',      // CSRF protection
+            sameSite: 'none',         // Allow cross-site cookies (fixes Tracking Prevention)
         }
     };
 

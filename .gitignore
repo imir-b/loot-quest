@@ -1,6 +1,12 @@
+
+# Previous content
 .env
 node_modules/
 /data
 package-lock.json
 *.log
 .DS_Store
+
+# Secrets
+loot-quest-5fe77-firebase-adminsdk-fbsvc-5837f39868.json
+firebase-service-account.json

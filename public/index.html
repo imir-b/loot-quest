@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description"
         content="LootQuest - The #1 Platform to earn free Robux & V-Bucks. Instant payouts. No BS.">
     <title>LootQuest | Premium Gaming Rewards</title>
@@ -75,11 +75,12 @@
             background-color: #050505;
             color: #e0e0e0;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Custom Scrollbar */
+        /* Mobile First Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         ::-webkit-scrollbar-track {
@@ -88,16 +89,13 @@
 
         ::-webkit-scrollbar-thumb {
             background: #333;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #bc13fe;
+            border-radius: 2px;
         }
 
         /* Glassmorphism */
         .glass {
-            background: rgba(18, 18, 18, 0.6);
+            background: rgba(18, 18, 18, 0.85);
+            /* Darker for better contrast on mobile */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -110,10 +108,9 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .glass-card:hover {
-            border-color: rgba(0, 243, 255, 0.3);
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 10px 40px -10px rgba(0, 243, 255, 0.2);
+        .glass-card:active {
+            transform: scale(0.98);
+            /* Tactile feedback */
         }
 
         /* Text Gradients */
@@ -123,13 +120,7 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .text-gradient-gold {
-            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Neon Button */
+        /* Neon Button - Mobile Optimized Touch Target */
         .btn-neon {
             position: relative;
             background: transparent;
@@ -137,27 +128,15 @@
             border: 1px solid #00f3ff;
             overflow: hidden;
             transition: all 0.3s ease;
+            min-height: 48px;
+            /* Mobile touch target */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn-neon::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        .btn-neon:hover::before {
-            left: 100%;
-        }
-
-        .btn-neon:hover {
+        .btn-neon:active {
             background: rgba(0, 243, 255, 0.1);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-            text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
         }
 
         .btn-glow {
@@ -165,52 +144,13 @@
             color: white;
             position: relative;
             z-index: 1;
+            min-height: 54px;
+            /* Big CTA for thumb */
         }
 
-        .btn-glow::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
-            z-index: -1;
-            filter: blur(15px);
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
-            border-radius: inherit;
-        }
-
-        .btn-glow:hover::after {
-            opacity: 0.8;
-            filter: blur(20px);
-        }
-
-        /* Animations */
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(2deg);
-            }
-        }
-
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .animate-float-delayed {
-            animation: float 8s ease-in-out infinite 1s;
-        }
-
-        .grid-bg {
-            background-size: 40px 40px;
-            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        .btn-glow:active {
+            opacity: 0.9;
+            transform: scale(0.98);
         }
 
         /* Marquee */
@@ -222,7 +162,8 @@
 
         .marquee-content {
             display: inline-block;
-            animation: marquee 30s linear infinite;
+            animation: marquee 20s linear infinite;
+            /* Faster on mobile usually feels better */
         }
 
         @keyframes marquee {
@@ -234,17 +175,643 @@
                 transform: translateX(-50%);
             }
         }
-
-        .marquee-container:hover .marquee-content {
-            animation-play-state: paused;
-        }
-
-        /* Quest Line */
-        .quest-line-path {
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-        }
     </style>
+</head>
+
+<body class="antialiased selection:bg-loot-purple selection:text-white">
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 z-50 bg-loot-black flex items-center justify-center">
+        <div class="flex flex-col items-center">
+            <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tighter mb-4">
+                LOOT<span class="text-gradient-primary">QUEST</span>
+            </h1>
+            <div class="w-48 h-1 bg-gray-800 rounded-full overflow-hidden">
+                <div id="loader-bar" class="w-0 h-full bg-gradient-to-r from-loot-neon to-loot-purple"></div>
+            </div>
+            <p class="mt-2 font-mono text-loot-neon text-sm animate-pulse">INITIALIZING...</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 transition-all duration-300 bg-loot-black/95 backdrop-blur-xl border-b border-white/5"
+        id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" class="font-display text-2xl font-bold tracking-tighter flex items-center gap-2 group">
+                <i data-lucide="gamepad-2"
+                    class="text-loot-neon group-hover:rotate-12 transition-transform w-6 h-6"></i>
+                <span>LOOT<span class="text-gradient-primary">QUEST</span></span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#how-it-works" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">How
+                    it Works</a>
+                <a href="#rewards"
+                    class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Rewards</a>
+                <a href="#stats" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Hall of
+                    Fame</a>
+                <a href="/blog.html"
+                    class="text-sm font-bold text-loot-neon hover:text-white transition-colors">Blog</a>
+            </div>
+
+            <!-- CTA Desktop -->
+            <div class="hidden md:flex items-center gap-4">
+                <button id="lang-switcher" onclick="toggleLanguage()"
+                    class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-xl transition-all">
+                    <span class="lang-flag">🇺🇸</span>
+                </button>
+                <button onclick="loginWithGoogle()"
+                    class="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                    data-i18n="nav_login">Login</button>
+                <button onclick="loginWithGoogle()"
+                    class="btn-neon px-6 rounded-lg font-display font-bold text-sm uppercase tracking-wide h-10"
+                    data-i18n="hero_btn_start">Start Quest</button>
+            </div>
+
+            <!-- Mobile Menu Btn (44px min touch target) -->
+            <button class="md:hidden text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <i data-lucide="menu" id="mobile-menu-icon" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay (Full Screen Mobile First) -->
+        <div id="mobile-menu"
+            class="hidden absolute top-16 left-0 w-full h-[calc(100vh-64px)] bg-loot-black/98 backdrop-blur-xl p-6 flex flex-col gap-6 transform transition-all duration-300 overflow-y-auto">
+            <div class="flex flex-col gap-2">
+                <a href="#how-it-works" onclick="toggleMobileMenu()"
+                    class="text-2xl font-display font-medium text-white py-4 border-b border-white/5">How it Works</a>
+                <a href="#rewards" onclick="toggleMobileMenu()"
+                    class="text-2xl font-display font-medium text-white py-4 border-b border-white/5">Rewards</a>
+                <a href="#stats" onclick="toggleMobileMenu()"
+                    class="text-2xl font-display font-medium text-white py-4 border-b border-white/5">Hall of Fame</a>
+                <a href="/blog.html"
+                    class="text-2xl font-display font-bold text-loot-neon py-4 border-b border-white/5">Blog</a>
+            </div>
+
+            <div class="mt-auto pb-8 flex flex-col gap-4">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleLanguage()"
+                        class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-2xl border border-white/10">
+                        <span class="lang-flag">🇺🇸</span>
+                    </button>
+                    <button onclick="loginWithGoogle()"
+                        class="flex-1 h-14 text-center font-bold text-gray-300 border border-white/10 rounded-2xl bg-white/5">Login
+                        to Account</button>
+                </div>
+                <button onclick="loginWithGoogle()"
+                    class="w-full btn-glow h-16 rounded-2xl font-bold text-xl uppercase tracking-wide shadow-neon">START
+                    EARNING</button>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                icon.setAttribute('data-lucide', 'x');
+            } else {
+                menu.classList.add('hidden');
+                document.body.style.overflow = '';
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- APP CONTAINER -->
+    <div id="app">
+        <!-- HERO SECTION - Mobile First Stack -->
+        <main id="landing-page" class="relative pt-24 md:pt-32 pb-10">
+            <div class="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
+
+                <!-- Badge -->
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-loot-card border border-loot-purple/30 mb-8 hero-element opacity-0">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs font-mono text-loot-neon font-bold tracking-wide" data-i18n="live_payouts">LIVE
+                        PAYOUTS ACTIVE</span>
+                </div>
+
+                <!-- Main Title (Responsive Text) -->
+                <h1
+                    class="font-display text-5xl sm:text-7xl md:text-9xl font-bold leading-[0.9] tracking-tighter mb-8 hero-element opacity-0">
+                    <span data-i18n="hero_line1">Your Time.</span><br />
+                    <span class="text-gradient-primary" data-i18n="hero_line3">Your Loot.</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-base sm:text-lg md:text-xl text-gray-400 max-w-xl mx-auto mb-10 hero-element opacity-0 font-light leading-relaxed"
+                    data-i18n="hero_desc">
+                    The #1 Platform to earn free Robux & V-Bucks. Complete quests on your phone. Level up. Get paid
+                    instantly.
+                </p>
+
+                <!-- CTAs (Stacked on Mobile) -->
+                <div
+                    class="w-full max-w-sm md:max-w-none flex flex-col md:flex-row items-center justify-center gap-4 hero-element opacity-0">
+                    <button onclick="loginWithGoogle()"
+                        class="w-full md:w-auto btn-glow px-10 rounded-xl font-display font-bold text-lg hover:scale-105 transition-transform"
+                        data-i18n="hero_btn_start">
+                        START EARNING NOW
+                    </button>
+                    <button onclick="document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'})"
+                        class="w-full md:w-auto h-[54px] rounded-xl font-display font-bold text-lg text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 transition-all"
+                        data-i18n="how_title">
+                        HOW IT WORKS
+                    </button>
+                </div>
+
+                <!-- Trust Indicators (Stacked Grid on Mobile) -->
+                <div
+                    class="mt-16 grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-12 text-gray-500 hero-element opacity-0 w-full max-w-2xl mx-auto border-t border-white/5 pt-8 md:border-none md:pt-0">
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-2 text-center md:text-left">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-loot-purple mb-1 md:mb-0"></i>
+                        <span class="text-sm font-medium" data-i18n="hero_stat_rating">Verified Payouts</span>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-2 text-center md:text-left">
+                        <i data-lucide="zap" class="w-6 h-6 text-loot-neon mb-1 md:mb-0"></i>
+                        <span class="text-sm font-medium" data-i18n="hero_stat_paid">Instant Delivery</span>
+                    </div>
+                    <div
+                        class="flex flex-col md:flex-row items-center justify-center gap-2 col-span-2 md:col-span-1 border-t border-white/5 pt-6 md:border-none md:pt-0">
+                        <i data-lucide="globe" class="w-6 h-6 text-loot-gold mb-1 md:mb-0"></i>
+                        <span class="text-sm font-medium">Global Access</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- LIVE TICKER -->
+        <div class="w-full bg-loot-card border-y border-white/5 py-4 relative z-20">
+            <div class="marquee-container">
+                <div class="marquee-content" id="payout-ticker">
+                    <!-- JS injected items -->
+                </div>
+                <div class="marquee-content" id="payout-ticker-dup">
+                    <!-- Duplicate -->
+                </div>
+            </div>
+        </div>
+
+        <!-- HOW IT WORKS (Mobile: Simple Vertical Stack) -->
+        <section id="how-it-works" class="py-24 relative overflow-hidden">
+            <div class="max-w-6xl mx-auto px-6">
+                <!-- Header -->
+                <div class="text-center mb-16">
+                    <h2 class="font-display text-4xl font-bold mb-4">Your Quest Log</h2>
+                    <p class="text-gray-400">Three simple steps to claim your bounty.</p>
+                </div>
+
+                <!-- Steps Container -->
+                <div class="flex flex-col gap-12 md:gap-24 relative">
+                    <!-- Vertical Line (Desktop Only) -->
+                    <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-800 -translate-x-1/2 hidden md:block">
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="relative flex flex-col md:flex-row items-center gap-8 md:gap-16">
+                        <div class="flex-1 w-full order-2 md:order-1 md:text-right">
+                            <h3 class="font-display text-3xl font-bold text-loot-neon mb-2">1. The Login</h3>
+                            <p class="text-gray-400">Link your Google or Discord account. One click entry.</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-loot-black border-2 border-loot-neon rounded-full z-10 flex items-center justify-center shrink-0 order-1 md:order-2 shadow-neon">
+                            <span class="font-bold text-white">1</span>
+                        </div>
+                        <div class="flex-1 w-full order-3">
+                            <div class="glass-card p-6 rounded-2xl border border-white/10">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                        <i data-lucide="log-in" class="w-5 h-5"></i>
+                                    </div>
+                                    <div class="text-sm font-bold text-gray-300">Account Connected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative flex flex-col md:flex-row items-center gap-8 md:gap-16">
+                        <div class="flex-1 w-full order-3 md:order-1">
+                            <div class="glass-card p-6 rounded-2xl border border-white/10">
+                                <div class="space-y-3">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-300">Survey: Gaming Habits</span>
+                                        <span class="text-loot-gold font-bold">+500 PTS</span>
+                                    </div>
+                                    <div class="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full w-3/4 bg-loot-gold"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-loot-black border-2 border-loot-purple rounded-full z-10 flex items-center justify-center shrink-0 order-1 md:order-2 shadow-purple">
+                            <span class="font-bold text-white">2</span>
+                        </div>
+                        <div class="flex-1 w-full order-2 md:order-3 md:text-left">
+                            <h3 class="font-display text-3xl font-bold text-loot-purple mb-2">2. The Grind</h3>
+                            <p class="text-gray-400">Complete quests, surveys, and app downloads to earn XP.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative flex flex-col md:flex-row items-center gap-8 md:gap-16">
+                        <div class="flex-1 w-full order-2 md:order-1 md:text-right">
+                            <h3 class="font-display text-3xl font-bold text-loot-gold mb-2">3. The Loot</h3>
+                            <p class="text-gray-400">Cash out instantly. Robux, V-Bucks, or PayPal.</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-loot-black border-2 border-loot-gold rounded-full z-10 flex items-center justify-center shrink-0 order-1 md:order-2 shadow-neon">
+                            <span class="font-bold text-white">3</span>
+                        </div>
+                        <div class="flex-1 w-full order-3">
+                            <div class="glass-card p-6 rounded-2xl border border-white/10 text-center">
+                                <div class="text-3xl font-bold text-white mb-1">1,000</div>
+                                <div class="text-xs font-bold text-loot-neon tracking-widest">ROBUX SENT</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REWARDS (Mobile Grid: 1 col) -->
+        <section id="rewards" class="py-24 bg-loot-dark/50">
+            <div class="max-w-7xl mx-auto px-6">
+                <h2 class="font-display text-4xl md:text-5xl font-bold mb-12 text-center">Featured <span
+                        class="text-gradient-primary">Loot</span></h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Cards (Already Mobile First friendly structure) -->
+                    <div class="glass-card p-6 rounded-3xl text-center hover:border-loot-neon/50">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Robux_2019_Logo_gold.svg"
+                            alt="Robux" class="h-24 mx-auto mb-6 object-contain">
+                        <h3 class="text-2xl font-bold text-white mb-2">Roblox Robux</h3>
+                        <p class="text-gray-400 text-sm mb-6">Instant Transfer via Server</p>
+                        <button onclick="loginWithGoogle()" class="w-full btn-neon rounded-xl font-bold uppercase">Claim
+                            Now</button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-3xl text-center border-loot-purple/50 relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 bg-loot-purple text-xs font-bold px-3 py-1 rounded-bl-xl text-black">
+                            POPULAR</div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Epic_Games_logo.svg" alt="VBucks"
+                            class="h-24 mx-auto mb-6 object-contain invert">
+                        <h3 class="text-2xl font-bold text-white mb-2">Fortnite V-Bucks</h3>
+                        <p class="text-gray-400 text-sm mb-6">Gift Card Global Codes</p>
+                        <button onclick="loginWithGoogle()" class="w-full btn-glow rounded-xl font-bold uppercase">Claim
+                            Now</button>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-3xl text-center hover:border-loot-neon/50">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal"
+                            class="h-24 mx-auto mb-6 object-contain">
+                        <h3 class="text-2xl font-bold text-white mb-2">PayPal Cash</h3>
+                        <p class="text-gray-400 text-sm mb-6">Direct Money Transfer</p>
+                        <button onclick="loginWithGoogle()" class="w-full btn-neon rounded-xl font-bold uppercase">Claim
+                            Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER (Stacked Mobile) -->
+        <footer class="border-t border-white/5 bg-loot-black pt-16 pb-8">
+            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
+                <div class="col-span-1 md:col-span-2">
+                    <a href="#"
+                        class="font-display text-2xl font-bold flex items-center justify-center md:justify-start gap-2 mb-4">
+                        <i data-lucide="gamepad-2" class="text-loot-neon"></i>
+                        <span>LOOT<span class="text-gradient-primary">QUEST</span></span>
+                    </a>
+                    <p class="text-gray-500 text-sm mb-6 max-w-xs mx-auto md:mx-0">
+                        The trusted platform for gamers to earn rewards. Verified payouts, secure data, global access.
+                    </p>
+                    <div class="flex items-center justify-center md:justify-start gap-4">
+                        <!-- Socials -->
+                        <a href="https://discord.gg/lootquest"
+                            class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-[#5865F2] hover:text-white transition-colors"><i
+                                data-lucide="message-circle" class="w-5 h-5"></i></a>
+                        <a href="#"
+                            class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-blue-400 hover:text-white transition-colors"><i
+                                data-lucide="twitter" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white mb-4">Support</h4>
+                    <ul class="space-y-3 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-loot-neon">FAQ</a></li>
+                        <li><a href="#" class="hover:text-loot-neon">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-loot-neon">Report a Bug</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white mb-4">Legal</h4>
+                    <ul class="space-y-3 text-sm text-gray-500">
+                        <li><a href="#" class="hover:text-loot-neon">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-loot-neon">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/5 text-center text-xs text-gray-600">
+                &copy; 2025 LootQuest. All rights reserved.
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Init Scripts -->
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Loading Animation
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            tl.to("#loader-bar", { width: "100%", duration: 1.5, ease: "power2.inOut" })
+                .to("#loader", { opacity: 0, duration: 0.5, onComplete: () => document.getElementById('loader').remove() })
+                .to(".hero-element", { opacity: 1, y: 0, stagger: 0.2, duration: 0.8, ease: "back.out(1.7)" });
+
+            // Fake Ticker Content
+            const ticker = document.getElementById('payout-ticker');
+            const items = [
+                "🔥 <b>Alex</b> withdrew <b>1000 Robux</b>",
+                "💰 <b>Sarah</b> earned <b>$10 PayPal</b>",
+                "🎮 <b>Mike</b> claimed <b>Fortnite Battle Pass</b>",
+                "💎 <b>David</b> got <b>2800 V-Bucks</b>",
+                "🚀 <b>Emma</b> reached <b>Level 5</b>"
+            ];
+            const html = items.map(t => `<span class="mx-6 px-4 py-2 rounded-full bg-white/5 border border-white/5 text-sm md:text-base text-gray-300">${t}</span>`).join('');
+            ticker.innerHTML = html;
+            document.getElementById('payout-ticker-dup').innerHTML = html;
+        });
+
+        // Parallax effect (Desktop only for performance)
+        if (window.innerWidth > 768) {
+            document.addEventListener('mousemove', (e) => {
+                const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+                const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+                gsap.to('#landing-page', { x: moveX, y: moveY, duration: 1 });
+            });
+        }
+    </script>
+</body>
+
+</html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LootQuest - The #1 Platform to earn free Robux & V-Bucks. Instant payouts. No BS.">
+<title>LootQuest | Premium Gaming Rewards</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- GSAP & Plugins -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+
+<!-- Google Fonts: Space Grotesk & Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700;800&display=swap"
+    rel="stylesheet">
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- i18n Translation Scripts -->
+<script src="/js/translations.js"></script>
+<script src="/js/language-manager.js"></script>
+
+<!-- LootAuth Module -->
+<script src="/js/auth.js"></script>
+
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    loot: {
+                        black: '#050505',
+                        dark: '#0a0a0a',
+                        card: '#121212',
+                        neon: '#00f3ff',     // Cyan
+                        purple: '#bc13fe',   // Electric Purple
+                        gold: '#ffd700',     // Loot Gold
+                        text: '#e0e0e0',
+                        dim: '#6b7280'
+                    }
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                    display: ['Space Grotesk', 'sans-serif'],
+                },
+                backgroundImage: {
+                    'grid-pattern': "linear-gradient(to right, #1f1f1f 1px, transparent 1px), linear-gradient(to bottom, #1f1f1f 1px, transparent 1px)",
+                    'hero-glow': "radial-gradient(circle at center, rgba(188, 19, 254, 0.15) 0%, transparent 70%)"
+                },
+                boxShadow: {
+                    'neon': '0 0 20px rgba(0, 243, 255, 0.3)',
+                    'purple': '0 0 20px rgba(188, 19, 254, 0.3)',
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    body {
+        background-color: #050505;
+        color: #e0e0e0;
+        overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #0a0a0a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #bc13fe;
+    }
+
+    /* Glassmorphism */
+    .glass {
+        background: rgba(18, 18, 18, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .glass-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .glass-card:hover {
+        border-color: rgba(0, 243, 255, 0.3);
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 10px 40px -10px rgba(0, 243, 255, 0.2);
+    }
+
+    /* Text Gradients */
+    .text-gradient-primary {
+        background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .text-gradient-gold {
+        background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Neon Button */
+    .btn-neon {
+        position: relative;
+        background: transparent;
+        color: #00f3ff;
+        border: 1px solid #00f3ff;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .btn-neon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .btn-neon:hover::before {
+        left: 100%;
+    }
+
+    .btn-neon:hover {
+        background: rgba(0, 243, 255, 0.1);
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+    }
+
+    .btn-glow {
+        background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+        color: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-glow::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+        z-index: -1;
+        filter: blur(15px);
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+        border-radius: inherit;
+    }
+
+    .btn-glow:hover::after {
+        opacity: 0.8;
+        filter: blur(20px);
+    }
+
+    /* Animations */
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(2deg);
+        }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .animate-float-delayed {
+        animation: float 8s ease-in-out infinite 1s;
+    }
+
+    .grid-bg {
+        background-size: 40px 40px;
+        mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+    }
+
+    /* Marquee */
+    .marquee-container {
+        overflow: hidden;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .marquee-content {
+        display: inline-block;
+        animation: marquee 30s linear infinite;
+    }
+
+    @keyframes marquee {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    .marquee-container:hover .marquee-content {
+        animation-play-state: paused;
+    }
+
+    /* Quest Line */
+    .quest-line-path {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+    }
+</style>
 </head>
 
 <body class="antialiased selection:bg-loot-purple selection:text-white">
@@ -292,6 +859,8 @@
                     class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Rewards</a>
                 <a href="#stats" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Hall of
                     Fame</a>
+                <a href="/blog.html"
+                    class="text-sm font-bold text-loot-neon hover:text-white transition-colors">Blog</a>
             </div>
 
             <!-- CTA -->
@@ -315,11 +884,60 @@
             </div>
 
             <!-- Mobile Menu Btn -->
-            <button class="md:hidden text-white">
-                <i data-lucide="menu"></i>
+            <button class="md:hidden text-white p-2" onclick="toggleMobileMenu()">
+                <i data-lucide="menu" id="mobile-menu-icon"></i>
             </button>
         </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="hidden md:hidden absolute top-20 left-0 w-full bg-loot-black/95 backdrop-blur-xl border-b border-white/10 p-6 flex-col gap-4 shadow-2xl transition-all duration-300 transform origin-top scale-y-0 opacity-0">
+            <a href="#how-it-works" onclick="toggleMobileMenu()"
+                class="text-lg font-medium text-gray-400 hover:text-white py-2 border-b border-white/5">How it Works</a>
+            <a href="#rewards" onclick="toggleMobileMenu()"
+                class="text-lg font-medium text-gray-400 hover:text-white py-2 border-b border-white/5">Rewards</a>
+            <a href="#stats" onclick="toggleMobileMenu()"
+                class="text-lg font-medium text-gray-400 hover:text-white py-2 border-b border-white/5">Hall of Fame</a>
+            <a href="/blog.html"
+                class="text-lg font-bold text-loot-neon hover:text-white py-2 border-b border-white/5">Blog</a>
+
+            <div class="flex items-center gap-4 mt-2">
+                <button onclick="toggleLanguage()"
+                    class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">
+                    <span class="lang-flag">🇺🇸</span>
+                </button>
+                <button onclick="loginWithGoogle()"
+                    class="flex-1 py-3 text-center font-bold text-gray-300 border border-white/10 rounded-xl">Login</button>
+            </div>
+            <button onclick="loginWithGoogle()"
+                class="w-full btn-neon py-3.5 rounded-xl font-bold uppercase tracking-wide">Start Quest</button>
+        </div>
     </nav>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+
+            if (menu.classList.contains('hidden')) {
+                // Open
+                menu.classList.remove('hidden');
+                // Small delay to allow display:block to apply before transition
+                setTimeout(() => {
+                    menu.classList.remove('scale-y-0', 'opacity-0');
+                }, 10);
+                icon.setAttribute('data-lucide', 'x');
+            } else {
+                // Close
+                menu.classList.add('scale-y-0', 'opacity-0');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 300); // Match transition duration
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        }
+    </script>
 
     <!-- APP CONTAINER (SPA Logic Switch) -->
     <div id="app">
@@ -658,8 +1276,7 @@
                                 </li>
                                 <li><a href="#rewards" class="text-gray-400 hover:text-loot-neon transition-colors"
                                         data-i18n="footer_rewards">Rewards</a></li>
-                                <li><a href="/blog" onclick="loadBlogPage(); return false;"
-                                        class="text-gray-400 hover:text-loot-neon transition-colors"
+                                <li><a href="/blog.html" class="text-gray-400 hover:text-loot-neon transition-colors"
                                         data-i18n="footer_blog">Blog</a></li>
                                 <li><a href="#" onclick="openLegalModal('faq'); return false;"
                                         class="text-gray-400 hover:text-loot-neon transition-colors"
@@ -1645,7 +2262,7 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyD9zEcBcCgQqANbN38EpbA9xy_3MITTCPM",
-            authDomain: "loot-quest-5fe77.firebaseapp.com",
+            authDomain: "loot-quest.fr", // Using own domain to avoid storage partitioning
             projectId: "loot-quest-5fe77",
             storageBucket: "loot-quest-5fe77.firebasestorage.app",
             messagingSenderId: "1017089658126",
@@ -1711,13 +2328,36 @@
 
                     console.log(`📧 Email verified: ${emailVerified}, Provider: ${provider}`);
 
-                    // Only redirect if email is verified OR it's a trusted provider (Google/Discord)
+                    // Only proceed if email is verified OR it's a trusted provider (Google/Discord)
                     if (emailVerified || provider === 'google.com' || provider === 'discord.com') {
-                        console.log('✅ User is authenticated and verified, redirecting to dashboard...');
-                        // Add small delay to avoid flash of content
-                        setTimeout(() => {
-                            window.location.href = '/dashboard.html';
-                        }, 100);
+                        console.log('✅ User is authenticated and verified');
+
+                        // CRITICAL: Create backend session before redirecting
+                        try {
+                            console.log('🔑 Creating backend session...');
+                            const idToken = await user.getIdToken();
+
+                            const response = await fetch('/api/auth/login', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include', // CRITICAL for session cookie
+                                body: JSON.stringify({ idToken })
+                            });
+
+                            const data = await response.json();
+                            console.log('📦 Backend response:', data);
+
+                            if (data.success) {
+                                console.log('✅ Session created, redirecting to dashboard...');
+                                window.location.href = '/dashboard.html';
+                            } else {
+                                console.error('❌ Session creation failed:', data.error);
+                                showToast('Erreur de connexion', 'error');
+                            }
+                        } catch (error) {
+                            console.error('❌ Session creation error:', error);
+                            showToast('Erreur de connexion', 'error');
+                        }
                     } else {
                         console.log('⚠️ User exists but email not verified');
                         // User is logged in but email not verified - stay on landing page
@@ -1730,94 +2370,159 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════════════
-        // GOOGLE AUTHENTICATION - CLEAN IMPLEMENTATION (Gold Standard)
+        // GOOGLE AUTHENTICATION - ADAPTIVE (POPUP ON DESKTOP, REDIRECT ON MOBILE)
         // ═══════════════════════════════════════════════════════════════════════════
 
         /**
+         * Detect if user is on mobile device
+         */
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                || window.innerWidth < 768;
+        }
+
+        /**
          * Google Sign-In Handler
-         * Handles popup, token retrieval, and backend session creation
+         * Uses redirect on mobile, popup on desktop
          */
         async function handleGoogleSignIn() {
-            console.log('🔵 [DEBUG] Starting Google Sign-In...');
-            console.log('🔵 [DEBUG] Firebase initialized:', firebaseInitialized);
+            const useMobile = isMobileDevice();
+            console.log(`🔵 [DEBUG] Starting Google Sign-In (${useMobile ? 'REDIRECT' : 'POPUP'} mode)...`);
 
             try {
-                // 1. Create Google Auth Provider
+                // Initialize Firebase if needed
+                if (!initFirebase()) {
+                    showToast('Firebase non initialisé', 'error');
+                    return;
+                }
+
+                // Set persistence to LOCAL (survives browser restarts)
+                await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                console.log('🔵 [DEBUG] Persistence set to LOCAL');
+
+                // Create Google Auth Provider
                 const provider = new firebase.auth.GoogleAuthProvider();
                 provider.addScope('email');
                 provider.addScope('profile');
-                console.log('🔵 [DEBUG] Google provider created with scopes');
+                console.log('🔵 [DEBUG] Google provider created');
 
-                // 2. Open Google Sign-In Popup
-                console.log('📱 [DEBUG] Opening Google popup...');
-                const result = await firebase.auth().signInWithPopup(provider);
-
-                console.log('✅ [SUCCESS] Popup successful!');
-                console.log('📧 [DEBUG] User email:', result.user.email);
-                console.log('🔑 [DEBUG] User UID:', result.user.uid);
-                console.log('✔️ [DEBUG] Email verified:', result.user.emailVerified);
-
-                // 3. Get Firebase ID Token
-                console.log('🔵 [DEBUG] Requesting ID token...');
-                const idToken = await result.user.getIdToken();
-                console.log('✅ [SUCCESS] Got ID token (length:', idToken.length, ')');
-
-                // 4. Send token to backend for session creation
-                console.log('📤 [DEBUG] Sending token to backend /api/auth/login...');
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include', // CRITICAL for cookies
-                    body: JSON.stringify({ idToken })
-                });
-
-                console.log('📥 [DEBUG] Backend response status:', response.status);
-                const data = await response.json();
-                console.log('📦 [DEBUG] Backend response data:', data);
-
-                if (data.success) {
-                    console.log('✅ [SUCCESS] Backend session created!');
-                    console.log('👤 [DEBUG] User data:', data.user);
-
-                    // 5. EXPLICIT REDIRECT to dashboard
-                    console.log('🚀 [DEBUG] Redirecting to /dashboard.html...');
-
-                    // Close modal if open
-                    closeModal();
-
-                    // Force explicit redirect
-                    window.location.href = '/dashboard.html';
+                if (useMobile) {
+                    // MOBILE: Use redirect method
+                    console.log('📱 [DEBUG] Using redirect method for mobile...');
+                    await firebase.auth().signInWithRedirect(provider);
+                    // Note: Execution stops here, page will redirect and come back
                 } else {
-                    throw new Error(data.error || 'Backend session creation failed');
+                    // DESKTOP: Use popup method
+                    console.log('💻 [DEBUG] Using popup method for desktop...');
+                    const result = await firebase.auth().signInWithPopup(provider);
+
+                    console.log('✅ [SUCCESS] Popup authentication successful!');
+                    console.log('📧 User email:', result.user.email);
+                    console.log('🔑 User UID:', result.user.uid);
+
+                    // Get Firebase ID Token
+                    const idToken = await result.user.getIdToken();
+                    console.log('✅ Got ID token, length:', idToken.length);
+
+                    // Create backend session
+                    console.log('📤 Sending token to backend...');
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ idToken })
+                    });
+
+                    const data = await response.json();
+                    console.log('📦 Backend response:', data);
+
+                    if (data.success) {
+                        console.log('✅ Session created, redirecting to dashboard...');
+                        closeModal();
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        throw new Error(data.error || 'Session creation failed');
+                    }
                 }
 
             } catch (error) {
-                console.error('❌ [ERROR] Google Sign-In Error:', error);
-                console.error('📋 [ERROR] Error code:', error.code);
-                console.error('📋 [ERROR] Error message:', error.message);
+                console.error('❌ Google Sign-In Error:', error);
 
                 // Handle specific Firebase errors
                 if (error.code === 'auth/popup-blocked') {
-                    showToast('❌ Popup bloqué par votre navigateur. Activez les popups et réessayez.', 'error');
+                    showToast('❌ Popup bloqué. Autorisez les popups pour ce site.', 'error');
                 } else if (error.code === 'auth/popup-closed-by-user') {
-                    console.log('ℹ️ [INFO] User closed the popup intentionally');
-                    // Don't show error, user cancelled intentionally - but log for debugging
                     showToast('Connexion annulée', 'info');
                 } else if (error.code === 'auth/cancelled-popup-request') {
-                    console.log('ℹ️ [INFO] Popup request cancelled (another one opened)');
+                    // Ignore - another popup was opened
                 } else if (error.code === 'auth/unauthorized-domain') {
-                    showToast('❌ Domaine non autorisé. Contactez le support.', 'error');
+                    showToast('❌ Domaine non autorisé dans Firebase', 'error');
                 } else if (error.code === 'auth/network-request-failed') {
-                    showToast('❌ Erreur réseau. Vérifiez votre connexion internet.', 'error');
+                    showToast('❌ Erreur réseau', 'error');
                 } else {
-                    showToast('❌ Erreur de connexion: ' + (error.message || 'Unknown error'), 'error');
+                    showToast('❌ Erreur: ' + (error.message || 'Connexion échouée'), 'error');
                 }
             }
         }
 
+        /**
+         * Handle redirect result after Google Sign-In redirect (mobile)
+         * This runs on page load to check if user came back from Google redirect
+         */
+        async function handleGoogleRedirectResult() {
+            if (!firebaseInitialized) {
+                initFirebase();
+            }
+
+            try {
+                const result = await firebase.auth().getRedirectResult();
+
+                if (result.user) {
+                    console.log('✅ [SUCCESS] Redirect authentication successful!');
+                    console.log('📧 User email:', result.user.email);
+                    console.log('🔑 User UID:', result.user.uid);
+
+                    // Get Firebase ID Token
+                    const idToken = await result.user.getIdToken();
+                    console.log('✅ Got ID token from redirect, length:', idToken.length);
+
+                    // Create backend session
+                    console.log('📤 Sending token to backend...');
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ idToken })
+                    });
+
+                    const data = await response.json();
+                    console.log('📦 Backend response:', data);
+
+                    if (data.success) {
+                        console.log('✅ Session created, redirecting to dashboard...');
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        throw new Error(data.error || 'Session creation failed');
+                    }
+                }
+            } catch (error) {
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    console.error('❌ Redirect result error:', error);
+                    showToast('❌ Erreur de connexion: ' + (error.message || 'Unknown'), 'error');
+                }
+            }
+        }
+
+        // Check for redirect result on page load (for mobile Google login)
+        if (typeof firebase !== 'undefined') {
+            firebase.auth().onAuthStateChanged(() => {
+                handleGoogleRedirectResult();
+            });
+        }
+
+
         // ════════════════ AUTH MODAL ════════════════
+
 
         function openAuthModal() {
             const content = `

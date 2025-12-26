@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LootQuest Blog - Astuces & Guides Gaming Rewards</title>
+    <meta name="description"
+        content="Découvrez nos guides pour gagner des V-Bucks, Robux, et de l'argent PayPal gratuitement en jouant. Anti-scam, 100% légal.">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        loot: {
+                            black: '#050505',
+                            dark: '#0a0a0a',
+                            card: '#121212',
+                            neon: '#00f3ff',     // Cyan
+                            purple: '#bc13fe',   // Electric Purple
+                            gold: '#ffd700',     // Loot Gold
+                            text: '#e0e0e0',
+                            dim: '#6b7280'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'glass': 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Mobile First Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.85);
+            /* Darker for better contrast on mobile */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .article-card {
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .article-card:active {
+            transform: scale(0.98);
+        }
+
+        @media (min-width: 768px) {
+            .article-card:hover {
+                transform: translateY(-5px);
+                border-color: rgba(188, 19, 254, 0.5);
+            }
+        }
+
+        /* Text Gradients */
+        .text-gradient-primary {
+            background: linear-gradient(135deg, #00f3ff 0%, #bc13fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col font-sans selection:bg-loot-purple selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 transition-all duration-300 bg-loot-black/95 backdrop-blur-xl border-b border-white/5"
+        id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-16 md:h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="font-display text-2xl font-bold tracking-tighter flex items-center gap-2 group">
+                <i data-lucide="gamepad-2"
+                    class="text-loot-neon group-hover:rotate-12 transition-transform w-6 h-6"></i>
+                <span>LOOT<span class="text-gradient-primary">QUEST</span> <span
+                        class="text-xs text-gray-500 font-sans tracking-widest ml-1">BLOG</span></span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="/" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Accueil</a>
+                <a href="/dashboard.html"
+                    class="px-5 py-2 bg-loot-purple hover:bg-purple-600 text-white font-bold rounded-lg transition-all shadow-lg shadow-purple-900/20">
+                    Dashboard
+                </a>
+            </div>
+
+            <!-- Mobile Menu Btn (44px min touch target) -->
+            <button class="md:hidden text-white p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <i data-lucide="menu" id="mobile-menu-icon" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay (Full Screen Mobile First) -->
+        <div id="mobile-menu"
+            class="hidden absolute top-16 left-0 w-full h-[calc(100vh-64px)] bg-loot-black/98 backdrop-blur-xl p-6 flex flex-col gap-6 transform transition-all duration-300 overflow-y-auto border-t border-white/5">
+            <div class="flex flex-col gap-2">
+                <a href="/"
+                    class="text-2xl font-display font-medium text-white py-4 border-b border-white/5">Accueil</a>
+                <a href="/dashboard.html"
+                    class="text-2xl font-display font-bold text-loot-purple py-4 border-b border-white/5">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('mobile-menu-icon');
+
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                icon.setAttribute('data-lucide', 'x');
+            } else {
+                menu.classList.add('hidden');
+                document.body.style.overflow = '';
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Header -->
+    <header class="relative pt-32 pb-12 px-6 overflow-hidden text-center">
+        <div
+            class="absolute top-0 right-0 w-[500px] h-[500px] bg-loot-purple/10 rounded-full blur-[120px] pointer-events-none -z-10">
+        </div>
+
+        <span
+            class="inline-block px-3 py-1 rounded-full bg-loot-purple/10 text-loot-purple text-xs font-bold border border-loot-purple/20 mb-6 tracking-wide">
+            GAMING REWARDS ACADEMY
+        </span>
+
+        <h1 class="font-display font-black text-4xl md:text-6xl text-white mb-6 leading-[1.1] tracking-tight">
+            Arrêtez de payer pour vos <br class="hidden md:block"> <span class="text-gradient-primary">Skins</span>.
+        </h1>
+
+        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Tutoriels, astuces et guides anti-scam pour gagner des V-Bucks, Robux et de l'argent PayPal légalement.
+        </p>
+    </header>
+
+    <!-- Articles Grid -->
+    <main class="flex-1 px-6 pb-24">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+
+            <!-- Article 1 (FR) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-blue-900/50"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl">🎮</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        FORTNITE
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Comment obtenir des V-Bucks Fortnite gratuits en 2025
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Fini les générateurs fake. Découvrez la seule méthode sûre pour farmer les V-Bucks avec
+                        LootQuest.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>5 min de lecture</span>
+                        <span>26 Déc 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 2 (EN) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-cyan-900/50"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl">💸</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        PAYPAL
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        How to earn free PayPal money playing games
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Turn your gaming skills into cash. The ultimate guide to maximizing your earnings on offerwalls.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>🇬🇧 English</span>
+                        <span>Dec 26, 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 3 (FR - Robux) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Robux_2019_Logo_gold.svg" alt="Robux"
+                        class="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700 p-8 grayscale group-hover:grayscale-0">
+                    <div class="absolute inset-0 bg-black/40"></div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        ROBLOX
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Robux Gratuits : La SEULE méthode légale
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Évitez les hacks et découvrez comment gagner de vrais codes Robux officiels.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>4 min de lecture</span>
+                        <span>26 Déc 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 4 (FR - PayPal) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-green-900/50 to-emerald-900/50">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl text-green-400 font-bold">$</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        ARGENT
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Comment Gagner 10€ PayPal Rapidement
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Stratégie "Multi-Offer" pour maximiser vos gains en jouant sur mobile.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>5 min de lecture</span>
+                        <span>26 Déc 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 5 (EN - Top Apps) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-pink-900/50">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-3xl text-purple-300 font-bold">TOP 5</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        REVIEWS
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Top 5 Legit Apps to Earn Gift Cards (2025)
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        We ranked the best paying apps. See where LootQuest stands vs Swagbucks.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>🇬🇧 English</span>
+                        <span>Dec 26, 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 6 (EN - Legit Check) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-900/50 to-orange-900/50"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl text-red-400">?</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        SAFETY
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Is LootQuest Legit? Honest Review
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Scam or legit? We break down the business model and transparency report.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>🇬🇧 English</span>
+                        <span>Dec 26, 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 7 (FR - Genshin) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-indigo-900/50">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl">💎</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        GENSHIN
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Primo-Gemmes Gratuites : Le Guide Ultime
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Ne ratez pas la prochaine bannière. Voici comment farmer les primos légalement.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>5 min de lecture</span>
+                        <span>26 Déc 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 8 (FR - Amazon) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-700/50 to-orange-900/50">
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl text-yellow-400 font-bold">a</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        SHOPPING
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Cartes Amazon Gratuites : L'Astuce
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Financez vos achats Amazon en jouant sur votre téléphone.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>4 min de lecture</span>
+                        <span>26 Déc 2025</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Article 9 (EN - Steam) -->
+            <article class="glass-panel rounded-2xl overflow-hidden article-card group relative flex flex-col h-full">
+                <a href="#" class="absolute inset-0 z-10"></a>
+                <div class="h-48 bg-gray-900 relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/50 to-slate-900/50"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-5xl text-blue-300">🎮</span>
+                    </div>
+                    <div
+                        class="absolute top-4 left-4 px-2 py-1 bg-black/60 backdrop-blur rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        STEAM
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-1">
+                    <h2
+                        class="font-display font-bold text-xl text-white mb-3 group-hover:text-loot-neon transition-colors leading-tight">
+                        Free Steam Wallet Codes: Stop Using Generators
+                    </h2>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-6 flex-1">
+                        Steam Sales are coming. Learn how to top up your wallet for free and safely.
+                    </p>
+                    <div
+                        class="flex items-center justify-between text-xs text-gray-500 font-medium pt-4 border-t border-white/5">
+                        <span>🇬🇧 English</span>
+                        <span>Dec 26, 2025</span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </main>
+
+    <!-- Footer Link (Keep User on Platform) -->
+    <footer class="text-center pb-8 border-t border-white/5 pt-8">
+        <p class="text-gray-600 text-xs">&copy; 2025 LootQuest Blog. <a href="/"
+                class="text-gray-500 hover:text-white">Retour au site</a></p>
+    </footer>
+
+    <!-- Init -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

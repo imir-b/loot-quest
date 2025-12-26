@@ -61,6 +61,13 @@ const POINTS_PER_DOLLAR = 1000; // 1000 points = $1.00
 const USER_SPLIT = 0.60; // User receives 60% of offer value
 const PLATFORM_SPLIT = 0.40; // Platform keeps 40%
 
+// ═══════════════════════════════════════════════════════════════════════════
+// REFERRAL SYSTEM CONFIGURATION (Anti-Fraud & Performance-Based)
+// ═══════════════════════════════════════════════════════════════════════════
+const REFERRAL_BONUS = 50; // Points given to referrer when unlock threshold is met
+const REFERRAL_THRESHOLD = 500; // Referred user must earn this many points to unlock bonus
+const REFERRAL_COMMISSION_RATE = 0.05; // 5% lifetime commission on referred user earnings
+
 // Discord Webhook for Support Notifications
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
 
@@ -134,6 +141,14 @@ class Database {
         try { this.db.run('ALTER TABLE users ADD COLUMN discord_id TEXT'); } catch (e) { }
         try { this.db.run('ALTER TABLE users ADD COLUMN discord_username TEXT'); } catch (e) { }
         try { this.db.run('ALTER TABLE users ADD COLUMN discord_avatar TEXT'); } catch (e) { }
+
+        // Referral System Columns (Anti-Fraud)
+        try { this.db.run('ALTER TABLE users ADD COLUMN referral_code TEXT UNIQUE'); } catch (e) { }
+        try { this.db.run('ALTER TABLE users ADD COLUMN referred_by_user_id TEXT'); } catch (e) { }
+        try { this.db.run('ALTER TABLE users ADD COLUMN ip_address TEXT'); } catch (e) { }
+        try { this.db.run('ALTER TABLE users ADD COLUMN lifetime_earnings INTEGER DEFAULT 0'); } catch (e) { }
+        try { this.db.run('ALTER TABLE users ADD COLUMN referral_unlocked INTEGER DEFAULT 0'); } catch (e) { }
+        this.db.run('CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code)');
 
         this.db.run(`
             CREATE TABLE IF NOT EXISTS transactions (
@@ -330,6 +345,55 @@ app.use(createSessionMiddleware(isProduction));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ═══════════════════════════════════════════════════════════════════════════
+// FIREBASE AUTH HANDLER PROXY
+// Proxy Firebase auth endpoints to avoid cross-origin storage partitioning
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FIREBASE_PROJECT_ID = 'loot-quest-5fe77';
+
+// Proxy all /__/auth/* requests to Firebase
+app.use('/__/auth', async (req, res) => {
+    const targetUrl = `https://${FIREBASE_PROJECT_ID}.firebaseapp.com/__/auth${req.url}`;
+
+    try {
+        const response = await axios({
+            method: req.method,
+            url: targetUrl,
+            headers: {
+                ...req.headers,
+                host: `${FIREBASE_PROJECT_ID}.firebaseapp.com`
+            },
+            data: req.body,
+            responseType: 'arraybuffer',
+            validateStatus: () => true
+        });
+
+        // Copy response headers
+        Object.entries(response.headers).forEach(([key, value]) => {
+            if (!['content-encoding', 'transfer-encoding', 'connection'].includes(key.toLowerCase())) {
+                res.setHeader(key, value);
+            }
+        });
+
+        res.status(response.status).send(response.data);
+    } catch (error) {
+        console.error('Firebase auth proxy error:', error.message);
+        res.status(502).send('Firebase auth proxy error');
+    }
+});
+
+// Also proxy Firebase init.json for proper initialization
+app.get('/__/firebase/init.json', async (req, res) => {
+    try {
+        const response = await axios.get(`https://${FIREBASE_PROJECT_ID}.firebaseapp.com/__/firebase/init.json`);
+        res.json(response.data);
+    } catch (error) {
+        console.error('Firebase init.json proxy error:', error.message);
+        res.status(502).json({ error: 'Failed to fetch Firebase config' });
+    }
+});
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MIDDLEWARE: i18n Language Detection (GeoIP)
@@ -429,6 +493,16 @@ function getClientIP(req) {
         || req.headers['x-real-ip']
         || req.socket?.remoteAddress
         || 'unknown';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPER: Generate Unique Referral Code
+// ═══════════════════════════════════════════════════════════════════════════
+
+function generateReferralCode(userId) {
+    const crypto = require('crypto');
+    const hash = crypto.createHash('md5').update(userId + Date.now().toString()).digest('hex');
+    return `lq-${hash.substring(0, 8)}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -640,11 +714,36 @@ app.post('/api/auth/login', async (req, res) => {
             // Create new user with signup bonus
             isNewUser = true;
             const userId = uuidv4();
+            const newUserIP = getClientIP(req);
+            const newUserRefCode = generateReferralCode(userId);
+
+            // ═══════════════════════════════════════════════════════════════
+            // REFERRAL SYSTEM: Anti-Fraud Check
+            // ═══════════════════════════════════════════════════════════════
+            let referredByUserId = null;
+            const refCodeFromRequest = req.body.refCode || req.query.ref; // Support both body and query
+
+            if (refCodeFromRequest) {
+                const referrer = db.get('SELECT id, ip_address FROM users WHERE referral_code = ?', [refCodeFromRequest]);
+
+                if (referrer) {
+                    // SECURITY CHECK: Same IP = Self-Referral Fraud
+                    if (referrer.ip_address === newUserIP) {
+                        console.warn(`🚨 FRAUD BLOCKED: Self-referral attempt from IP ${newUserIP} (referrer: ${referrer.id})`);
+                        // Silently ignore the referral - user is still created
+                    } else {
+                        referredByUserId = referrer.id;
+                        console.log(`🤝 Valid referral: New user referred by ${referrer.id}`);
+                    }
+                } else {
+                    console.log(`⚠️ Invalid referral code: ${refCodeFromRequest}`);
+                }
+            }
 
             db.run(`
-                INSERT INTO users (id, email, display_name, avatar_url, provider, firebase_uid, balance, created_at, last_login_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-            `, [userId, emailLower, displayName, picture, provider, firebaseUid, SIGNUP_BONUS]);
+                INSERT INTO users (id, email, display_name, avatar_url, provider, firebase_uid, balance, created_at, last_login_at, ip_address, referral_code, referred_by_user_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?)
+            `, [userId, emailLower, displayName, picture, provider, firebaseUid, SIGNUP_BONUS, newUserIP, newUserRefCode, referredByUserId]);
 
             // Add signup bonus transaction
             if (SIGNUP_BONUS > 0) {
@@ -657,7 +756,7 @@ app.post('/api/auth/login', async (req, res) => {
             }
 
             user = db.get('SELECT * FROM users WHERE id = ?', [userId]);
-            console.log(`✨ Login (new user): ${emailLower} via ${provider} (+${SIGNUP_BONUS} pts)`);
+            console.log(`✨ Login (new user): ${emailLower} via ${provider} (+${SIGNUP_BONUS} pts) | Ref: ${referredByUserId || 'none'}`);
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -677,9 +776,14 @@ app.post('/api/auth/login', async (req, res) => {
         // ═══════════════════════════════════════════════════════════════
         // SUCCESS RESPONSE
         // ═══════════════════════════════════════════════════════════════
+
+        // New users without a referrer see the welcome modal
+        const needsWelcome = isNewUser && !referredByUserId;
+        const redirectUrl = needsWelcome ? '/dashboard.html?welcome=1' : '/dashboard.html';
+
         return res.json({
             success: true,
-            redirectUrl: '/dashboard.html',
+            redirectUrl: redirectUrl,
             user: {
                 id: user.id,
                 email: user.email,
@@ -789,6 +893,154 @@ app.get('/api/user/me', isAuthenticated, (req, res) => {
             success: false,
             error: 'Failed to get user info'
         });
+    }
+});
+
+/**
+ * GET /api/user/referral
+ * 
+ * Returns the user's referral code and referral statistics.
+ */
+app.get('/api/user/referral', isAuthenticated, (req, res) => {
+    try {
+        console.log(`📊 Fetching referral data for user: ${req.user.id}`);
+
+        let user = db.get('SELECT id, referral_code, referred_by_user_id FROM users WHERE id = ?', [req.user.id]);
+
+        if (!user) {
+            console.error(`❌ User not found in DB: ${req.user.id}`);
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        console.log(`✅ User found:`, user);
+
+        // AUTO-GENERATE referral code if user doesn't have one (legacy users)
+        if (!user.referral_code) {
+            try {
+                const newCode = generateReferralCode(user.id);
+                db.run('UPDATE users SET referral_code = ? WHERE id = ?', [newCode, user.id]);
+                user.referral_code = newCode;
+                console.log(`🔗 Generated referral code for legacy user: ${user.id} -> ${newCode}`);
+            } catch (genError) {
+                console.error('❌ Error generating referral code:', genError);
+                // Continue anyway, we'll handle missing code later
+            }
+        }
+
+        // Count how many users this person has referred
+        let referralCount = 0;
+        try {
+            const countResult = db.get('SELECT COUNT(*) as count FROM users WHERE referred_by_user_id = ?', [req.user.id]);
+            referralCount = countResult?.count || 0;
+            console.log(`📈 Total referrals: ${referralCount}`);
+        } catch (countError) {
+            console.error('❌ Error counting referrals:', countError);
+        }
+
+        // Count unlocked referrals (those who passed the threshold)
+        let unlockedCount = 0;
+        try {
+            const unlockedResult = db.get('SELECT COUNT(*) as count FROM users WHERE referred_by_user_id = ? AND referral_unlocked = 1', [req.user.id]);
+            unlockedCount = unlockedResult?.count || 0;
+            console.log(`🔓 Unlocked referrals: ${unlockedCount}`);
+        } catch (unlockedError) {
+            console.error('⚠️ Error counting unlocked (column may not exist):', unlockedError);
+            // Column might not exist for legacy DB, default to 0
+            unlockedCount = 0;
+        }
+
+        // Total commission earned from referrals
+        let totalCommission = 0;
+        try {
+            const commissionResult = db.get("SELECT COALESCE(SUM(amount), 0) as sum FROM transactions WHERE user_id = ? AND source IN ('referral_bonus', 'referral_commission')", [req.user.id]);
+            totalCommission = commissionResult?.sum || 0;
+            console.log(`💰 Total commission: ${totalCommission}`);
+        } catch (commissionError) {
+            console.error('❌ Error calculating commission:', commissionError);
+        }
+
+        const response = {
+            success: true,
+            referral: {
+                code: user.referral_code || 'GENERATING...',
+                shareUrl: user.referral_code ? `https://loot-quest.fr/?ref=${user.referral_code}` : 'https://loot-quest.fr',
+                hasReferrer: !!user.referred_by_user_id,
+                stats: {
+                    totalReferred: referralCount,
+                    activeReferred: unlockedCount,
+                    pendingReferred: Math.max(0, referralCount - unlockedCount),
+                    totalEarnings: totalCommission
+                },
+                config: {
+                    bonusAmount: REFERRAL_BONUS,
+                    threshold: REFERRAL_THRESHOLD,
+                    commissionRate: `${Math.round(REFERRAL_COMMISSION_RATE * 100)}%`
+                }
+            }
+        };
+
+        console.log(`✅ Sending response:`, response);
+        res.json(response);
+
+    } catch (error) {
+        console.error('❌❌❌ CRITICAL: Referral stats error:', error);
+        console.error('Stack trace:', error.stack);
+        res.status(500).json({ success: false, error: 'Failed to get referral info', details: error.message });
+    }
+});
+
+/**
+ * POST /api/user/apply-referral
+ * 
+ * Allows a new user to apply a referral code after registration.
+ * Only works if user doesn't already have a referrer.
+ */
+app.post('/api/user/apply-referral', isAuthenticated, (req, res) => {
+    try {
+        const { refCode } = req.body;
+        const userId = req.user.id;
+        const userIP = getClientIP(req);
+
+        if (!refCode) {
+            return res.status(400).json({ success: false, error: 'Referral code is required' });
+        }
+
+        // Check if user already has a referrer
+        const user = db.get('SELECT referred_by_user_id FROM users WHERE id = ?', [userId]);
+        if (user && user.referred_by_user_id) {
+            return res.status(400).json({ success: false, error: 'Vous avez déjà un parrain' });
+        }
+
+        // Find the referrer
+        const referrer = db.get('SELECT id, display_name, ip_address FROM users WHERE referral_code = ?', [refCode]);
+        if (!referrer) {
+            return res.status(404).json({ success: false, error: 'Code de parrainage invalide' });
+        }
+
+        // Security: Can't refer yourself
+        if (referrer.id === userId) {
+            return res.status(400).json({ success: false, error: 'Vous ne pouvez pas utiliser votre propre code' });
+        }
+
+        // Security: Same IP check
+        if (referrer.ip_address === userIP) {
+            console.warn(`🚨 FRAUD BLOCKED (post-reg): Same IP ${userIP} for user ${userId} and referrer ${referrer.id}`);
+            return res.status(400).json({ success: false, error: 'Code invalide' }); // Vague error for security
+        }
+
+        // Apply the referral
+        db.run('UPDATE users SET referred_by_user_id = ? WHERE id = ?', [referrer.id, userId]);
+
+        console.log(`🤝 Referral applied: ${userId} now referred by ${referrer.id}`);
+
+        res.json({
+            success: true,
+            referrerName: referrer.display_name || 'votre parrain'
+        });
+
+    } catch (error) {
+        console.error('Apply referral error:', error);
+        res.status(500).json({ success: false, error: 'Erreur serveur' });
     }
 });
 
@@ -1297,15 +1549,60 @@ app.get('/api/postback/lootably', (req, res) => {
             clientIP
         ]);
 
-        // Update user balance and total earned
+        // Update user balance, total earned, AND lifetime_earnings (for referral threshold)
         db.run(`
             UPDATE users 
             SET balance = balance + ?, 
-                total_earned = total_earned + ?
+                total_earned = total_earned + ?,
+                lifetime_earnings = lifetime_earnings + ?
             WHERE id = ?
-        `, [points, points, user_id]);
+        `, [points, points, points, user_id]);
 
         console.log(`✅ Credited ${points} points to user ${user_id} (tx: ${transaction_id})`);
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // REFERRAL SYSTEM: Unlock Check & Commission
+        // ═══════════════════════════════════════════════════════════════════════════
+        const updatedUser = db.get('SELECT lifetime_earnings, referral_unlocked, referred_by_user_id FROM users WHERE id = ?', [user_id]);
+
+        if (updatedUser && updatedUser.referred_by_user_id) {
+            const referrerId = updatedUser.referred_by_user_id;
+
+            // 1. CHECK FOR THRESHOLD UNLOCK (One-Time Bonus)
+            if (updatedUser.lifetime_earnings >= REFERRAL_THRESHOLD && updatedUser.referral_unlocked === 0) {
+                // Credit the referrer with ACTIVATION BONUS
+                db.run('UPDATE users SET balance = balance + ?, total_earned = total_earned + ? WHERE id = ?',
+                    [REFERRAL_BONUS, REFERRAL_BONUS, referrerId]);
+
+                // Log the bonus transaction
+                const bonusTxId = `ref_bonus_${referrerId}_${Date.now()}`;
+                db.run(`
+                    INSERT INTO transactions (id, user_id, amount, type, source, description)
+                    VALUES (?, ?, ?, 'credit', 'referral_bonus', ?)
+                `, [bonusTxId, referrerId, REFERRAL_BONUS, `Referral unlocked! (User ${user_id.substring(0, 8)}...)`]);
+
+                // Mark as unlocked to prevent duplicate bonuses
+                db.run('UPDATE users SET referral_unlocked = 1 WHERE id = ?', [user_id]);
+
+                console.log(`🎉 REFERRAL UNLOCKED: ${REFERRAL_BONUS} pts bonus to referrer ${referrerId}`);
+            }
+
+            // 2. CREDIT LIFETIME COMMISSION (Always, on every offer completion)
+            const commission = Math.floor(points * REFERRAL_COMMISSION_RATE);
+            if (commission > 0) {
+                db.run('UPDATE users SET balance = balance + ?, total_earned = total_earned + ? WHERE id = ?',
+                    [commission, commission, referrerId]);
+
+                // Log the commission transaction
+                const commTxId = `ref_comm_${referrerId}_${Date.now()}`;
+                db.run(`
+                    INSERT INTO transactions (id, user_id, amount, type, source, description)
+                    VALUES (?, ?, ?, 'credit', 'referral_commission', ?)
+                `, [commTxId, referrerId, commission, `${Math.round(REFERRAL_COMMISSION_RATE * 100)}% commission from referral`]);
+
+                console.log(`📈 COMMISSION: ${commission} pts (${Math.round(REFERRAL_COMMISSION_RATE * 100)}% of ${points}) to referrer ${referrerId}`);
+            }
+        }
 
         res.json({ success: true, message: `Credited ${points} points` });
 

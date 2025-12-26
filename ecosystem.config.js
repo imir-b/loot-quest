@@ -16,10 +16,10 @@ module.exports = {
         script: 'server.js',
 
         // ═══════════════════════════════════════════════════════════════
-        // CLUSTER MODE (12 instances for 12 vCores)
+        // SINGLE INSTANCE MODE (temporary - until Redis is configured)
         // ═══════════════════════════════════════════════════════════════
-        instances: 12,
-        exec_mode: 'cluster',
+        instances: 1,
+        exec_mode: 'fork',
 
         // ═══════════════════════════════════════════════════════════════
         // MEMORY MANAGEMENT
